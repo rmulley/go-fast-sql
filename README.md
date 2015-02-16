@@ -32,7 +32,7 @@ func main() {
 	bi = batchinsert.NewBatchInsert(dbh, 100)
 
 	// Some loop performing SQL INSERTs
-	for i < 250 {
+	for i <= 250 {
 		if err = bi.Insert("INSERT INTO test_table(id, id2, id3) VALUES(?, ?, ?);", i, i + 1, i + 2); err != nil {
 			log.Fatalln(err)
 		} //if
