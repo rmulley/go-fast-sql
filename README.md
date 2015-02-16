@@ -28,7 +28,7 @@ func main() {
 	} //if
 	defer dbh.Close()
 
-	// Create new BatchInsert object
+	// Create new BatchInsert object that will run a batch SQL INSERT every 100 rows
 	bi = batchinsert.NewBatchInsert(dbh, 100)
 
 	// Some loop performing SQL INSERTs
