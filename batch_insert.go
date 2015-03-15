@@ -27,17 +27,18 @@ func NewBatchInsert(dbh *sql.DB, insertRate uint) *BatchInsert_t {
 func (this *BatchInsert_t) Insert(query string, params ...interface{}) (err error) {
 	// Only split out query the first time Insert is called
 	if this.queryPart1 == "" {
-		// Split VALUES query section from beginning of query
-		parts := strings.SplitN(strings.ToLower(query), "values(", -1)
+		var (
+			ndxParens, ndxValues int
+		) //var
+
+		// Normalize and split query
+		query = strings.ToLower(query)
+		ndxValues = strings.LastIndex(query, "values")
+		ndxParens = strings.LastIndex(query, ")")
 
 		// Save the first and second parts of the query separately for easier building later
-		this.queryPart1 = parts[0]
-		this.queryPart2 = " (" + parts[1][0:len(parts[1])-2] + "),"
-
-		// If present, remove trailing semicolon
-		if this.queryPart2[:len(this.queryPart2)] == ";" {
-			this.queryPart2 = this.queryPart2[0 : len(this.queryPart2)-1]
-		} //if
+		this.queryPart1 = query[:ndxValues]
+		this.queryPart2 = query[ndxValues+6:ndxParens+1] + ","
 	} //if
 
 	this.insertCtr++
