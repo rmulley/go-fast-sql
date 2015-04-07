@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/rmulley/go-batch-insert.png)](https://travis-ci.org/rmulley/go-batch-insert)
-[![Coverage Status](https://coveralls.io/repos/rmulley/go-batch-insert/badge.svg)](https://coveralls.io/r/rmulley/go-batch-insert)
+[![Coverage Status](https://coveralls.io/repos/rmulley/go-batch-insert/badge.svg?branch=master)](https://coveralls.io/r/rmulley/go-batch-insert?branch=master)
 # go-batch-insert
 A Golang library to make batch inserts easy.
 
