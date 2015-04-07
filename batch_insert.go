@@ -99,6 +99,6 @@ func (this *BatchInsert_t) splitQuery(query string) {
 	ndxParens = strings.LastIndex(query, ")")
 
 	// Save the first and second parts of the query separately for easier building later
-	this.queryPart1 = query[:ndxValues]
+	this.queryPart1 = strings.TrimSpace(query[:ndxValues])
 	this.queryPart2 = query[ndxValues+6:ndxParens+1] + ","
 } //splitQuery

@@ -2,7 +2,6 @@ package batchinsert
 
 import (
 	"database/sql"
-	"strings"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -23,10 +22,7 @@ func TestSplitQuery(t *testing.T) {
 		t.Fatal(err)
 	} //if
 
-	query = `INSERT INTO
-				table_name(a, b, c)
-			VALUES
-				(?, ?, ?)`
+	query = "INSERT INTO table_name(a, b, c) VALUES(?, ?, ?);"
 
 	bi := NewBatchInsert(dbh, 100)
 
@@ -41,10 +37,13 @@ func TestSplitQuery(t *testing.T) {
 		t.Fatal(err)
 	} //if
 
-	if strings.ToUpper(bi.queryPart1[0:11]) != "INSERT INTO" {
-		t.Log(bi.queryPart1[0:11])
-		t.Fatal("bi.queryPart1 does not start with 'INSERT INTO'")
+	if bi.queryPart1 != "insert into table_name(a, b, c)" {
+		t.Log("*" + bi.queryPart1 + "*")
+		t.Fatal("bi.queryPart1 not formatted correctly.")
 	} //if
 
-	// if bi.queryPart2
+	if bi.queryPart2 != "(?, ?, ?)," {
+		t.Log("*" + bi.queryPart2 + "*")
+		t.Fatal("bi.queryPart2 not formatted correctly.")
+	} //if
 } //TestSplitQuery
