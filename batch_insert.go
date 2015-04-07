@@ -27,18 +27,7 @@ func NewBatchInsert(dbh *sql.DB, insertRate uint) *BatchInsert_t {
 func (this *BatchInsert_t) Insert(query string, params ...interface{}) (err error) {
 	// Only split out query the first time Insert is called
 	if this.queryPart1 == "" {
-		var (
-			ndxParens, ndxValues int
-		) //var
-
-		// Normalize and split query
-		query = strings.ToLower(query)
-		ndxValues = strings.LastIndex(query, "values")
-		ndxParens = strings.LastIndex(query, ")")
-
-		// Save the first and second parts of the query separately for easier building later
-		this.queryPart1 = query[:ndxValues]
-		this.queryPart2 = query[ndxValues+6:ndxParens+1] + ","
+		this.splitQuery(query)
 	} //if
 
 	this.insertCtr++
@@ -98,3 +87,18 @@ func (this *BatchInsert_t) Flush() (err error) {
 
 	return err
 } //Flush
+
+func (this *BatchInsert_t) splitQuery(query string) {
+	var (
+		ndxParens, ndxValues int
+	) //var
+
+	// Normalize and split query
+	query = strings.ToLower(query)
+	ndxValues = strings.LastIndex(query, "values")
+	ndxParens = strings.LastIndex(query, ")")
+
+	// Save the first and second parts of the query separately for easier building later
+	this.queryPart1 = query[:ndxValues]
+	this.queryPart2 = query[ndxValues+6:ndxParens+1] + ","
+} //splitQuery
