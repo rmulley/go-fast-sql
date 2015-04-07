@@ -1,9 +1,9 @@
 language: 
-	- go
+- go
 go:
-	- "1.4.2"
+- "1.4.2"
 env:
 	global:
-		- export GOPATH := $(CURDIR)/_vendor:$(CURDIR):$(GOPATH)
+	- export GOPATH := $(CURDIR)/_vendor:$(CURDIR):$(GOPATH)
 script:
-	- go test -v batch_insert_test.go
+- go test -v batch_insert_test.go
