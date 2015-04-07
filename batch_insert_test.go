@@ -8,7 +8,25 @@ import (
 ) //import
 
 func TestNewBatchInsert(t *testing.T) {
+	var (
+		err        error
+		insertRate uint = 100
+		dbh        *sql.DB
+	) //var
 
+	if dbh, err = sqlmock.New(); err != nil {
+		t.Fatal(err)
+	} //if
+
+	bi := NewBatchInsert(dbh, insertRate)
+
+	if bi.insertRate != insertRate {
+		t.Fatal("'insertRate' not being set correctly in NewBatchInsert().")
+	} //if
+
+	if bi.values != " VALUES" {
+		t.Fatal("'values' not being set correctly in NewBatchInsert().")
+	} //if
 } //TestNewBatchInsert
 
 func TestSplitQuery(t *testing.T) {
