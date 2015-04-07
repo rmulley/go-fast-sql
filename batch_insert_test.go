@@ -14,6 +14,8 @@ func TestNewBatchInsert(t *testing.T) {
 		dbh        *sql.DB
 	) //var
 
+	t.Parallel()
+
 	if dbh, err = sqlmock.New(); err != nil {
 		t.Fatal(err)
 	} //if
@@ -29,12 +31,65 @@ func TestNewBatchInsert(t *testing.T) {
 	} //if
 } //TestNewBatchInsert
 
+func TestFlush(t *testing.T) {
+	var (
+		err   error
+		query string
+		dbh   *sql.DB
+	) //var
+
+	t.Parallel()
+
+	if dbh, err = sqlmock.New(); err != nil {
+		t.Fatal(err)
+	} //if
+
+	query = "INSERT INTO table_name(a, b, c) VALUES(?, ?, ?);"
+
+	bi := NewBatchInsert(dbh, 100)
+
+	for i := 0; i < 3; i++ {
+		if err = bi.Insert(
+			query,
+			[]interface{}{
+				1,
+				2,
+				3,
+			}...,
+		); err != nil {
+			t.Fatal(err)
+		} //if
+	} //for
+
+	sqlmock.ExpectExec("insert into table_name\\(a, b, c\\) VALUES\\(\\?, \\?, \\?\\),\\(\\?, \\?, \\?\\),\\(\\?, \\?, \\?\\)").
+		WithArgs(1, 2, 3, 1, 2, 3, 1, 2, 3).
+		WillReturnResult(sqlmock.NewResult(0, 3))
+
+	if err = bi.Flush(); err != nil {
+		t.Fatal(err)
+	} //if
+
+	if bi.values != " VALUES" {
+		t.Fatal("bi.values not properly reset by bi.Flush().")
+	} //if
+
+	if len(bi.bindParams) > 0 {
+		t.Fatal("bi.bindParams not properly reset by bi.Flush().")
+	} //if
+
+	if bi.insertCtr != 0 {
+		t.Fatal("bi.insertCtr not properly reset by bi.Flush().")
+	} //if
+} //TestFlush
+
 func TestSplitQuery(t *testing.T) {
 	var (
 		err   error
 		query string
 		dbh   *sql.DB
 	) //var
+
+	t.Parallel()
 
 	if dbh, err = sqlmock.New(); err != nil {
 		t.Fatal(err)
@@ -50,7 +105,7 @@ func TestSplitQuery(t *testing.T) {
 			1,
 			2,
 			3,
-		},
+		}...,
 	); err != nil {
 		t.Fatal(err)
 	} //if
