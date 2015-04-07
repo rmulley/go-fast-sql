@@ -38,26 +38,7 @@ func (this *BatchInsert_t) Insert(query string, params ...interface{}) (err erro
 
 	// If the batch interval has been hit, execute a batch insert
 	if this.insertCtr >= this.insertRate {
-		var (
-			stmt *sql.Stmt
-		) //var
-
-		// Prepare query
-		if stmt, err = this.dbh.Prepare(this.queryPart1 + this.values[:len(this.values)-1]); err != nil {
-			return (err)
-		} //if
-		defer stmt.Close()
-
-		// Executate batch insert
-		if _, err = stmt.Exec(this.bindParams...); err != nil {
-			return (err)
-		} //if
-
-		// Reset vars
-		_ = stmt.Close()
-		this.values = " VALUES"
-		this.bindParams = make([]interface{}, 0)
-		this.insertCtr = 0
+		err = this.Flush()
 	} //if
 
 	return err
