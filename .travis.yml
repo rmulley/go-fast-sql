@@ -1,3 +1,13 @@
-language: go
+language: 
+  - go
 go:
-- "1.4.2"
+  - tip
+env:
+  global:
+    - secure: AWsuGT8PLZ/Hqv6RiZ8tuS6t8DdGyM76I7ayJopi9Kt6kKSXCBw7GMiEHiOcEsrUw8MpscIzOgDvcNpeEP6dJgZEa04qDCJSw2JVbbl9En9bbzeqHttmkeeaY1iXqDGxO5WX4x70lZJ+0lMZkI442ww0bqyYLLHXecre5KWcJAI=
+before_install:
+  - go get github.com/axw/gocov/gocov
+  - go get github.com/mattn/goveralls
+  - if ! go get code.google.com/p/go.tools/cmd/cover; then go get golang.org/x/tools/cmd/cover; fi
+script:
+    - $HOME/gopath/bin/goveralls -service=travis-ci
