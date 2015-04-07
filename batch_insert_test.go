@@ -8,11 +8,11 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 ) //import
 
-func testNewBatchInsert(t *testing.T) {
+func TestNewBatchInsert(t *testing.T) {
 
-} //testNewBatchInsert
+} //TestNewBatchInsert
 
-func testSplitQuery(t *testing.T) {
+func TestSplitQuery(t *testing.T) {
 	var (
 		err   error
 		query string
@@ -41,9 +41,10 @@ func testSplitQuery(t *testing.T) {
 		t.Fatal(err)
 	} //if
 
-	if strings.ToUpper(bi.queryPart1[0:10]) != "INSERasdfT INTO" {
+	if strings.ToUpper(bi.queryPart1[0:11]) != "INSERT INTO" {
+		t.Log(bi.queryPart1[0:11])
 		t.Fatal("bi.queryPart1 does not start with 'INSERT INTO'")
 	} //if
 
 	// if bi.queryPart2
-} //testSplitQuery
+} //TestSplitQuery

@@ -2,7 +2,3 @@ language:
   - go
 go:
   - "1.4.2"
-env:
-  - export GOPATH := $(CURDIR)/_vendor:$(CURDIR):$(GOPATH)
-script:
-  - go test -v batch_insert_test.go
