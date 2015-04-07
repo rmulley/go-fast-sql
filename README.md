@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/rmulley/go-batch-insert.png)](https://travis-ci.org/rmulley/go-batch-insert)
+
 # go-batch-insert
 A Golang library to make batch inserts easy.
 
