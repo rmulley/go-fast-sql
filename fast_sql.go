@@ -1,4 +1,4 @@
-package batchinsert
+package fastsql
 
 import (
 	"database/sql"

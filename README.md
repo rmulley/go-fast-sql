@@ -21,7 +21,7 @@ func main() {
 		err error
 		i   uint = 1
 		dbh *sql.DB
-		bi  *batchinsert.BatchInsert_t
+		fs  *fastsql.FastSQL_t
 	) //var
 
 	// Set up DB conn using Go's built-in database/sql pkg and go-sql-driver's MySQL driver
@@ -31,11 +31,11 @@ func main() {
 	defer dbh.Close()
 
 	// Create new BatchInsert object that will run a batch SQL INSERT every 100 rows
-	bi = batchinsert.NewBatchInsert(dbh, 100)
+	fs = batchinsert.NewFastSQL(dbh, 100)
 
 	// Some loop performing SQL INSERTs
 	for i <= 250 {
-		if err = bi.Insert("INSERT INTO test_table(id, id2, id3) VALUES(?, ?, ?);", i, i + 1, i + 2); err != nil {
+		if err = fs.Insert("INSERT INTO test_table(id, id2, id3) VALUES(?, ?, ?);", i, i + 1, i + 2); err != nil {
 			log.Fatalln(err)
 		} //if
 
@@ -43,7 +43,7 @@ func main() {
 	} //for
 
 	// Flush out remaining insert (Last 50 rows)
-	if err = bi.Flush(); err != nil {
+	if err = fs.Flush(); err != nil {
 		log.Fatalln(err)
 	} //if
 } //main
