@@ -7,7 +7,7 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 ) //import
 
-func TestNewBatchInsert(t *testing.T) {
+func TestNewFastSQL(t *testing.T) {
 	var (
 		err        error
 		insertRate uint = 100
@@ -20,7 +20,7 @@ func TestNewBatchInsert(t *testing.T) {
 		t.Fatal(err)
 	} //if
 
-	bi := NewBatchInsert(dbh, insertRate)
+	bi := NewFastSQL(dbh, insertRate)
 
 	if bi.insertRate != insertRate {
 		t.Fatal("'insertRate' not being set correctly in NewBatchInsert().")
@@ -29,7 +29,7 @@ func TestNewBatchInsert(t *testing.T) {
 	if bi.values != " VALUES" {
 		t.Fatal("'values' not being set correctly in NewBatchInsert().")
 	} //if
-} //TestNewBatchInsert
+} //TestNewFastSQL
 
 func TestFlush(t *testing.T) {
 	var (
@@ -46,7 +46,7 @@ func TestFlush(t *testing.T) {
 
 	query = "INSERT INTO table_name(a, b, c) VALUES(?, ?, ?);"
 
-	bi := NewBatchInsert(dbh, 100)
+	bi := NewFastSQL(dbh, 100)
 
 	for i := 0; i < 3; i++ {
 		if err = bi.Insert(
@@ -97,7 +97,7 @@ func TestInsert(t *testing.T) {
 
 	query = "INSERT INTO table_name(a, b, c) VALUES(?, ?, ?);"
 
-	bi := NewBatchInsert(dbh, 100)
+	bi := NewFastSQL(dbh, 100)
 
 	for i := 0; i < 3; i++ {
 		if err = bi.Insert(
@@ -143,7 +143,7 @@ func TestSplitQuery(t *testing.T) {
 
 	query = "INSERT INTO table_name(a, b, c) VALUES(?, ?, ?);"
 
-	bi := NewBatchInsert(dbh, 100)
+	bi := NewFastSQL(dbh, 100)
 
 	if err = bi.Insert(
 		query,

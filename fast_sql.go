@@ -5,7 +5,7 @@ import (
 	"strings"
 ) //import
 
-type BatchInsert_t struct {
+type FastSQL_t struct {
 	bindParams []interface{}
 	dbh        *sql.DB
 	insertCtr  uint
@@ -13,18 +13,18 @@ type BatchInsert_t struct {
 	queryPart1 string
 	queryPart2 string
 	values     string
-} //BatchInsert_t
+} //FastSQL_t
 
-func NewBatchInsert(dbh *sql.DB, insertRate uint) *BatchInsert_t {
-	return &BatchInsert_t{
+func NewFastSQL(dbh *sql.DB, insertRate uint) *FastSQL_t {
+	return &FastSQL_t{
 		dbh:        dbh,
 		bindParams: make([]interface{}, 0),
 		insertRate: insertRate,
 		values:     " VALUES",
 	} //return
-} //NewBatchInsert
+} //NewFastSQL
 
-func (this *BatchInsert_t) Insert(query string, params ...interface{}) (err error) {
+func (this *FastSQL_t) Insert(query string, params ...interface{}) (err error) {
 	// Only split out query the first time Insert is called
 	if this.queryPart1 == "" {
 		this.splitQuery(query)
@@ -44,7 +44,7 @@ func (this *BatchInsert_t) Insert(query string, params ...interface{}) (err erro
 	return err
 } //Insert
 
-func (this *BatchInsert_t) Flush() (err error) {
+func (this *FastSQL_t) Flush() (err error) {
 	var (
 		stmt *sql.Stmt
 	) //var
@@ -69,7 +69,7 @@ func (this *BatchInsert_t) Flush() (err error) {
 	return err
 } //Flush
 
-func (this *BatchInsert_t) splitQuery(query string) {
+func (this *FastSQL_t) splitQuery(query string) {
 	var (
 		ndxParens, ndxValues int
 	) //var
