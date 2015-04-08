@@ -1,7 +1,7 @@
 [![Build Status](https://travis-ci.org/rmulley/go-batch-insert.png)](https://travis-ci.org/rmulley/go-batch-insert)
 [![Coverage Status](https://coveralls.io/repos/rmulley/go-batch-insert/badge.svg?branch=master)](https://coveralls.io/r/rmulley/go-batch-insert?branch=master)
 # go-fast-sql
-A Golang library designed to speed up MySQL queries by batching INSERTs, UPDATEs, and DELETEs.  It's designed to be used in a manor very similar to Go's built-in [database/sql](http://golang.org/pkg/database/sql/) package.
+A Golang library designed to speed up SQL queries by batching INSERTs, UPDATEs, and DELETEs.  It's designed to be used in a manor very similar to Go's built-in [database/sql](http://golang.org/pkg/database/sql/) package.
 
 ##Example usage
 
