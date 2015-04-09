@@ -30,8 +30,8 @@ func main() {
 	} //if
 	defer dbh.Close()
 
-	// Create new BatchInsert object that will run a batch SQL INSERT every 100 rows
-	fs = batchinsert.NewFastSQL(dbh, 100)
+	// Create new FastSQL object that will run a batch SQL INSERT every 100 rows
+	fs = fastsql.NewFastSQL(dbh, 100)
 
 	// Some loop performing SQL INSERTs
 	for i <= 250 {
