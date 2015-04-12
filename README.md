@@ -24,7 +24,7 @@ func main() {
 	) //var
 
 	// Create new FastSQL DB object with a batch-insert-interval of 100 rows
-	if dbh, err = Open("mysql", "user:pass@tcp(localhost:3306)/db_name?"+url.QueryEscape("charset=utf8mb4,utf8&loc=America/New_York"), 100); err != nil {
+	if dbh, err = fastsql.Open("mysql", "user:pass@tcp(localhost:3306)/db_name?"+url.QueryEscape("charset=utf8mb4,utf8&loc=America/New_York"), 100); err != nil {
 		log.Fatalln(err)
 	} //if
 	defer dbh.Close()
