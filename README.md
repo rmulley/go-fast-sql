@@ -9,7 +9,6 @@ A Golang library designed to speed up SQL queries by batching INSERTs, UPDATEs, 
 package main
 
 import (
-	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/rmulley/go-fast-sql"
 	"log"
@@ -20,22 +19,18 @@ func main() {
 	var (
 		err error
 		i   uint = 1
-		dbh *sql.DB
-		fs  *fastsql.FastSQL_t
+		dbh *fastsql.DB
 	) //var
 
-	// Set up DB conn using Go's built-in database/sql pkg and go-sql-driver's MySQL driver
-	if dbh, err = sql.Open("mysql", "user:pass@tcp(localhost:3306)/db_name?"+url.QueryEscape("charset=utf8mb4,utf8&loc=America/New_York")); err != nil {
+	// Create new FastSQL DB object with a batch-insert-interval of 100 rows
+	if dbh, err = fastsql.Open("mysql", "user:pass@tcp(localhost:3306)/db_name?"+url.QueryEscape("charset=utf8mb4,utf8&loc=America/New_York"), 100); err != nil {
 		log.Fatalln(err)
 	} //if
 	defer dbh.Close()
 
-	// Create new FastSQL object that will run a batch SQL INSERT every 100 rows
-	fs = fastsql.NewFastSQL(dbh, 100)
-
 	// Some loop performing SQL INSERTs
 	for i <= 250 {
-		if err = fs.Insert("INSERT INTO test_table(id, id2, id3) VALUES(?, ?, ?);", i, i + 1, i + 2); err != nil {
+		if err = dbh.Insert("INSERT INTO test_table(id, id2, id3) VALUES(?, ?, ?);", i, i + 1, i + 2); err != nil {
 			log.Fatalln(err)
 		} //if
 
@@ -43,7 +38,7 @@ func main() {
 	} //for
 
 	// Flush out remaining insert (Last 50 rows)
-	if err = fs.Flush(); err != nil {
+	if err = dbh.Flush(); err != nil {
 		log.Fatalln(err)
 	} //if
 } //main

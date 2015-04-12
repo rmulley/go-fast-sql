@@ -5,26 +5,38 @@ import (
 	"strings"
 ) //import
 
-type FastSQL_t struct {
+type DB struct {
+	*sql.DB
+	driverName string
 	bindParams []interface{}
-	dbh        *sql.DB
 	insertCtr  uint
 	insertRate uint
 	queryPart1 string
 	queryPart2 string
 	values     string
-} //FastSQL_t
+} //DB
 
-func NewFastSQL(dbh *sql.DB, insertRate uint) *FastSQL_t {
-	return &FastSQL_t{
-		dbh:        dbh,
+// Open is the same as sql.Open, but returns an *fastsql.DB instead.
+func Open(driverName, dataSourceName string, insertRate uint) (*DB, error) {
+	var (
+		err error
+		dbh *sql.DB
+	) //var
+
+	if dbh, err = sql.Open(driverName, dataSourceName); err != nil {
+		return nil, err
+	} //if
+
+	return &DB{
+		DB:         dbh,
+		driverName: driverName,
 		bindParams: make([]interface{}, 0),
 		insertRate: insertRate,
 		values:     " VALUES",
-	} //return
-} //NewFastSQL
+	}, err
+} //Open
 
-func (this *FastSQL_t) Insert(query string, params ...interface{}) (err error) {
+func (this *DB) Insert(query string, params ...interface{}) (err error) {
 	// Only split out query the first time Insert is called
 	if this.queryPart1 == "" {
 		this.splitQuery(query)
@@ -44,13 +56,13 @@ func (this *FastSQL_t) Insert(query string, params ...interface{}) (err error) {
 	return err
 } //Insert
 
-func (this *FastSQL_t) Flush() (err error) {
+func (this *DB) Flush() (err error) {
 	var (
 		stmt *sql.Stmt
 	) //var
 
 	// Prepare query
-	if stmt, err = this.dbh.Prepare(this.queryPart1 + this.values[:len(this.values)-1]); err != nil {
+	if stmt, err = this.DB.Prepare(this.queryPart1 + this.values[:len(this.values)-1]); err != nil {
 		return (err)
 	} //if
 	defer stmt.Close()
@@ -69,7 +81,16 @@ func (this *FastSQL_t) Flush() (err error) {
 	return err
 } //Flush
 
-func (this *FastSQL_t) splitQuery(query string) {
+func (this *DB) SetDB(dbh *sql.DB) (err error) {
+	if err = dbh.Ping(); err != nil {
+		return err
+	} //if
+
+	this.DB = dbh
+	return nil
+} //SetDB
+
+func (this *DB) splitQuery(query string) {
 	var (
 		ndxParens, ndxValues int
 	) //var
