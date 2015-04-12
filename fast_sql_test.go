@@ -141,6 +141,29 @@ func TestInsert(t *testing.T) {
 	} //if
 } //TestInsert
 
+func (this *DB) TestSetDB(t *testing.T) {
+	var (
+		err     error
+		dbhMock *sql.DB
+		dbh     *DB
+	) //var
+
+	t.Parallel()
+
+	if dbh, err = Open("mysql", "user:pass@tcp(localhost:3306)/db_name?"+url.QueryEscape("charset=utf8mb4,utf8&loc=America/New_York"), 100); err != nil {
+		t.Fatal(err)
+	} //if
+
+	if dbhMock, err = sqlmock.New(); err != nil {
+		t.Fatal(err)
+	} //if
+	defer dbhMock.Close()
+
+	if err = dbh.SetDB(dbhMock); err != nil {
+		t.Fatal(err)
+	} //if
+} //TestSetDB
+
 func TestSplitQuery(t *testing.T) {
 	var (
 		err     error
