@@ -81,6 +81,15 @@ func (this *DB) Flush() (err error) {
 	return err
 } //Flush
 
+func (this *DB) SetDB(dbh *sql.DB) (err error) {
+	if err = dbh.Ping(); err != nil {
+		return err
+	} //if
+
+	this.DB = dbh
+	return nil
+} //SetDB
+
 func (this *DB) splitQuery(query string) {
 	var (
 		ndxParens, ndxValues int
