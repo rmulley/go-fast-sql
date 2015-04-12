@@ -9,7 +9,6 @@ A Golang library designed to speed up SQL queries by batching INSERTs, UPDATEs, 
 package main
 
 import (
-	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/rmulley/go-fast-sql"
 	"log"
