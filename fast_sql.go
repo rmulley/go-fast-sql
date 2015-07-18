@@ -7,13 +7,14 @@ import (
 
 type DB struct {
 	*sql.DB
-	driverName string
-	bindParams []interface{}
-	insertCtr  uint
-	insertRate uint
-	queryPart1 string
-	queryPart2 string
-	values     string
+	PreparedStatements map[string]*sql.Stmt
+	driverName         string
+	bindParams         []interface{}
+	insertCtr          uint
+	insertRate         uint
+	queryPart1         string
+	queryPart2         string
+	values             string
 } //DB
 
 // Open is the same as sql.Open, but returns an *fastsql.DB instead.
@@ -28,15 +29,16 @@ func Open(driverName, dataSourceName string, insertRate uint) (*DB, error) {
 	} //if
 
 	return &DB{
-		DB:         dbh,
-		driverName: driverName,
-		bindParams: make([]interface{}, 0),
-		insertRate: insertRate,
-		values:     " VALUES",
+		DB:                 dbh,
+		PreparedStatements: make(map[string]*sql.Stmt),
+		driverName:         driverName,
+		bindParams:         make([]interface{}, 0),
+		insertRate:         insertRate,
+		values:             " VALUES",
 	}, err
 } //Open
 
-func (this *DB) Insert(query string, params ...interface{}) (err error) {
+func (this *DB) BatchInsert(query string, params ...interface{}) (err error) {
 	// Only split out query the first time Insert is called
 	if this.queryPart1 == "" {
 		this.splitQuery(query)

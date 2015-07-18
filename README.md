@@ -22,7 +22,7 @@ func main() {
 		dbh *fastsql.DB
 	) //var
 
-	// Create new FastSQL DB object with a batch-insert-interval of 100 rows
+	// Create new FastSQL DB object with a flush-interval of 100 rows
 	if dbh, err = fastsql.Open("mysql", "user:pass@tcp(localhost:3306)/db_name?"+url.QueryEscape("charset=utf8mb4,utf8&loc=America/New_York"), 100); err != nil {
 		log.Fatalln(err)
 	} //if
@@ -30,7 +30,7 @@ func main() {
 
 	// Some loop performing SQL INSERTs
 	for i <= 250 {
-		if err = dbh.Insert("INSERT INTO test_table(id, id2, id3) VALUES(?, ?, ?);", i, i + 1, i + 2); err != nil {
+		if err = dbh.BatchInsert("INSERT INTO test_table(id, id2, id3) VALUES(?, ?, ?);", i, i + 1, i + 2); err != nil {
 			log.Fatalln(err)
 		} //if
 
