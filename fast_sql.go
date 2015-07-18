@@ -13,7 +13,7 @@ type DB struct {
 	driverName         string
 	bindParams         []interface{}
 	insertCtr          uint
-	insertRate         uint
+	flushInterval      uint
 	queryPart1         string
 	queryPart2         string
 	values             string
@@ -47,7 +47,7 @@ func (this *DB) Close() error {
 }
 
 // Open is the same as sql.Open, but returns an *fastsql.DB instead.
-func Open(driverName, dataSourceName string, insertRate uint) (*DB, error) {
+func Open(driverName, dataSourceName string, flushInterval uint) (*DB, error) {
 	var (
 		err error
 		dbh *sql.DB
@@ -63,7 +63,7 @@ func Open(driverName, dataSourceName string, insertRate uint) (*DB, error) {
 		prepstmts:          make(map[string]*sql.Stmt),
 		driverName:         driverName,
 		bindParams:         make([]interface{}, 0),
-		insertRate:         insertRate,
+		flushInterval:      flushInterval,
 		values:             " VALUES",
 	}, err
 }
@@ -81,7 +81,7 @@ func (this *DB) BatchInsert(query string, params ...interface{}) (err error) {
 	this.bindParams = append(this.bindParams, params...)
 
 	// If the batch interval has been hit, execute a batch insert
-	if this.insertCtr >= this.insertRate {
+	if this.insertCtr >= this.flushInterval {
 		err = this.Flush()
 	} //if
 

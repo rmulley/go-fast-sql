@@ -28,9 +28,9 @@ func TestClose(t *testing.T) {
 
 func TestOpen(t *testing.T) {
 	var (
-		err        error
-		insertRate uint = 100
-		dbh        *DB
+		err           error
+		flushInterval uint = 100
+		dbh           *DB
 	)
 
 	t.Parallel()
@@ -40,8 +40,8 @@ func TestOpen(t *testing.T) {
 	}
 	defer dbh.Close()
 
-	if dbh.insertRate != insertRate {
-		t.Fatal("'insertRate' not being set correctly in Open().")
+	if dbh.flushInterval != flushInterval {
+		t.Fatal("'flushInterval' not being set correctly in Open().")
 	}
 
 	if dbh.values != " VALUES" {
