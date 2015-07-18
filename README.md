@@ -13,33 +13,33 @@ import (
 	"github.com/rmulley/go-fast-sql"
 	"log"
 	"net/url"
-) //import
+)
 
 func main() {
 	var (
 		err error
 		i   uint = 1
 		dbh *fastsql.DB
-	) //var
+	)
 
 	// Create new FastSQL DB object with a flush-interval of 100 rows
 	if dbh, err = fastsql.Open("mysql", "user:pass@tcp(localhost:3306)/db_name?"+url.QueryEscape("charset=utf8mb4,utf8&loc=America/New_York"), 100); err != nil {
 		log.Fatalln(err)
-	} //if
+	}
 	defer dbh.Close()
 
 	// Some loop performing SQL INSERTs
 	for i <= 250 {
 		if err = dbh.BatchInsert("INSERT INTO test_table(id, id2, id3) VALUES(?, ?, ?);", i, i + 1, i + 2); err != nil {
 			log.Fatalln(err)
-		} //if
+		}
 
 		i++
-	} //for
+	}
 
 	// Flush out remaining insert (Last 50 rows)
 	if err = dbh.Flush(); err != nil {
 		log.Fatalln(err)
-	} //if
+	}
 } //main
 ```
