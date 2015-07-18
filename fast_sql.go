@@ -17,6 +17,14 @@ type DB struct {
 	values             string
 } //DB
 
+func (this *DB) Close() error {
+	for _, stmt := range this.PreparedStatements {
+		_ = stmt.Close()
+	}
+
+	return this.DB.Close()
+}
+
 // Open is the same as sql.Open, but returns an *fastsql.DB instead.
 func Open(driverName, dataSourceName string, insertRate uint) (*DB, error) {
 	var (
@@ -60,14 +68,17 @@ func (this *DB) BatchInsert(query string, params ...interface{}) (err error) {
 
 func (this *DB) Flush() (err error) {
 	var (
-		stmt *sql.Stmt
+		query string = this.queryPart1 + this.values[:len(this.values)-1]
+		stmt  *sql.Stmt
 	) //var
 
 	// Prepare query
-	if stmt, err = this.DB.Prepare(this.queryPart1 + this.values[:len(this.values)-1]); err != nil {
-		return (err)
+	if _, ok := this.PreparedStatements[query]; !ok {
+		if stmt, err = this.DB.Prepare(query); err != nil {
+			return (err)
+		} //if
+		this.PreparedStatements[query] = stmt
 	} //if
-	defer stmt.Close()
 
 	// Executate batch insert
 	if _, err = stmt.Exec(this.bindParams...); err != nil {
