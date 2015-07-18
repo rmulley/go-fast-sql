@@ -69,24 +69,23 @@ func (this *DB) BatchInsert(query string, params ...interface{}) (err error) {
 func (this *DB) Flush() (err error) {
 	var (
 		query string = this.queryPart1 + this.values[:len(this.values)-1]
-		stmt  *sql.Stmt
 	)
 
 	// Prepare query
 	if _, ok := this.PreparedStatements[query]; !ok {
-		if stmt, err = this.DB.Prepare(query); err != nil {
-			return (err)
+		if stmt, err := this.DB.Prepare(query); err == nil {
+			this.PreparedStatements[query] = stmt
+		} else {
+			return err
 		}
-		this.PreparedStatements[query] = stmt
 	}
 
 	// Executate batch insert
-	if _, err = stmt.Exec(this.bindParams...); err != nil {
-		return (err)
+	if _, err = this.PreparedStatements[query].Exec(this.bindParams...); err != nil {
+		return err
 	} //if
 
 	// Reset vars
-	_ = stmt.Close()
 	this.values = " VALUES"
 	this.bindParams = make([]interface{}, 0)
 	this.insertCtr = 0
