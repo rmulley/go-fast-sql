@@ -3,11 +3,13 @@ package fastsql
 import (
 	"database/sql"
 	"strings"
+	"sync"
 ) //import
 
 type DB struct {
 	*sql.DB
 	PreparedStatements map[string]*sql.Stmt
+	prepstmts          map[string]*sql.Stmt
 	driverName         string
 	bindParams         []interface{}
 	insertCtr          uint
@@ -18,10 +20,29 @@ type DB struct {
 } //DB
 
 func (this *DB) Close() error {
-	for _, stmt := range this.PreparedStatements {
-		_ = stmt.Close()
-	}
+	var (
+		wg sync.WaitGroup
+	)
 
+	wg.Add(1)
+	go func(wg *sync.WaitGroup) {
+		defer wg.Done()
+
+		for _, stmt := range this.PreparedStatements {
+			_ = stmt.Close()
+		}
+	}(&wg)
+
+	wg.Add(1)
+	go func(wg *sync.WaitGroup) {
+		defer wg.Done()
+
+		for _, stmt := range this.prepstmts {
+			_ = stmt.Close()
+		}
+	}(&wg)
+
+	wg.Wait()
 	return this.DB.Close()
 }
 
@@ -39,6 +60,7 @@ func Open(driverName, dataSourceName string, insertRate uint) (*DB, error) {
 	return &DB{
 		DB:                 dbh,
 		PreparedStatements: make(map[string]*sql.Stmt),
+		prepstmts:          make(map[string]*sql.Stmt),
 		driverName:         driverName,
 		bindParams:         make([]interface{}, 0),
 		insertRate:         insertRate,
@@ -72,16 +94,16 @@ func (this *DB) Flush() (err error) {
 	)
 
 	// Prepare query
-	if _, ok := this.PreparedStatements[query]; !ok {
+	if _, ok := this.prepstmts[query]; !ok {
 		if stmt, err := this.DB.Prepare(query); err == nil {
-			this.PreparedStatements[query] = stmt
+			this.prepstmts[query] = stmt
 		} else {
 			return err
 		}
 	}
 
 	// Executate batch insert
-	if _, err = this.PreparedStatements[query].Exec(this.bindParams...); err != nil {
+	if _, err = this.prepstmts[query].Exec(this.bindParams...); err != nil {
 		return err
 	} //if
 
