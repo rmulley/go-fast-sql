@@ -105,6 +105,12 @@ func TestFlush(t *testing.T) {
 	if dbh.insertCtr != 0 {
 		t.Fatal("dbh.insertCtr not properly reset by dbh.Flush().")
 	}
+
+	// Test prepared statement error
+	dbh.Close()
+	if err = dbh.Flush(); err == nil {
+		t.Fatal("Expecting prepared statement to fail and throw an error.")
+	}
 }
 
 func TestBatchInsert(t *testing.T) {
