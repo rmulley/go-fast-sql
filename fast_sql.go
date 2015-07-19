@@ -4,8 +4,11 @@ import (
 	"database/sql"
 	"strings"
 	"sync"
-) //import
+)
 
+// DB is a database handle that embeds the standard library's sql.DB struct.
+//
+//This means the fastsql.DB struct has, and allows, access to all of the standard library functionality while also providng a superset of functionality such as batch operations, autmatically created prepared statmeents, and more.
 type DB struct {
 	*sql.DB
 	PreparedStatements map[string]*sql.Stmt
@@ -19,7 +22,8 @@ type DB struct {
 	values             string
 } //DB
 
-func (this *DB) Close() error {
+// Close is the same a sql.Close, but first closes any opened prepared statements.
+func (d *DB) Close() error {
 	var (
 		wg sync.WaitGroup
 	)
@@ -28,7 +32,7 @@ func (this *DB) Close() error {
 	go func(wg *sync.WaitGroup) {
 		defer wg.Done()
 
-		for _, stmt := range this.PreparedStatements {
+		for _, stmt := range d.PreparedStatements {
 			_ = stmt.Close()
 		}
 	}(&wg)
@@ -37,13 +41,13 @@ func (this *DB) Close() error {
 	go func(wg *sync.WaitGroup) {
 		defer wg.Done()
 
-		for _, stmt := range this.prepstmts {
+		for _, stmt := range d.prepstmts {
 			_ = stmt.Close()
 		}
 	}(&wg)
 
 	wg.Wait()
-	return this.DB.Close()
+	return d.DB.Close()
 }
 
 // Open is the same as sql.Open, but returns an *fastsql.DB instead.
@@ -68,63 +72,65 @@ func Open(driverName, dataSourceName string, flushInterval uint) (*DB, error) {
 	}, err
 }
 
-func (this *DB) BatchInsert(query string, params ...interface{}) (err error) {
+// BatchInsert takes a singlular INSERT query and converts it to a batch-insert query for the caller.  A batch-insert is ran every time BatchInsert is called a multiple of flushInterval times.
+func (d *DB) BatchInsert(query string, params ...interface{}) (err error) {
 	// Only split out query the first time Insert is called
-	if this.queryPart1 == "" {
-		this.splitQuery(query)
+	if d.queryPart1 == "" {
+		d.splitQuery(query)
 	}
 
-	this.insertCtr++
+	d.insertCtr++
 
 	// Build VALUES seciton of query and add to parameter slice
-	this.values += this.queryPart2
-	this.bindParams = append(this.bindParams, params...)
+	d.values += d.queryPart2
+	d.bindParams = append(d.bindParams, params...)
 
 	// If the batch interval has been hit, execute a batch insert
-	if this.insertCtr >= this.flushInterval {
-		err = this.Flush()
+	if d.insertCtr >= d.flushInterval {
+		err = d.Flush()
 	} //if
 
 	return err
 }
 
-func (this *DB) Flush() (err error) {
+// Flush performs the acutal batch-insert query.
+func (d *DB) Flush() (err error) {
 	var (
-		query string = this.queryPart1 + this.values[:len(this.values)-1]
+		query string = d.queryPart1 + d.values[:len(d.values)-1]
 	)
 
 	// Prepare query
-	if _, ok := this.prepstmts[query]; !ok {
-		if stmt, err := this.DB.Prepare(query); err == nil {
-			this.prepstmts[query] = stmt
+	if _, ok := d.prepstmts[query]; !ok {
+		if stmt, err := d.DB.Prepare(query); err == nil {
+			d.prepstmts[query] = stmt
 		} else {
 			return err
 		}
 	}
 
 	// Executate batch insert
-	if _, err = this.prepstmts[query].Exec(this.bindParams...); err != nil {
+	if _, err = d.prepstmts[query].Exec(d.bindParams...); err != nil {
 		return err
 	} //if
 
 	// Reset vars
-	this.values = " VALUES"
-	this.bindParams = make([]interface{}, 0)
-	this.insertCtr = 0
+	d.values = " VALUES"
+	d.bindParams = make([]interface{}, 0)
+	d.insertCtr = 0
 
 	return err
 }
 
-func (this *DB) SetDB(dbh *sql.DB) (err error) {
+func (d *DB) setDB(dbh *sql.DB) (err error) {
 	if err = dbh.Ping(); err != nil {
 		return err
 	}
 
-	this.DB = dbh
+	d.DB = dbh
 	return nil
 }
 
-func (this *DB) splitQuery(query string) {
+func (d *DB) splitQuery(query string) {
 	var (
 		ndxParens, ndxValues int
 	)
@@ -135,6 +141,6 @@ func (this *DB) splitQuery(query string) {
 	ndxParens = strings.LastIndex(query, ")")
 
 	// Save the first and second parts of the query separately for easier building later
-	this.queryPart1 = strings.TrimSpace(query[:ndxValues])
-	this.queryPart2 = query[ndxValues+6:ndxParens+1] + ","
+	d.queryPart1 = strings.TrimSpace(query[:ndxValues])
+	d.queryPart2 = query[ndxValues+6:ndxParens+1] + ","
 }
