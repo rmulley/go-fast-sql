@@ -4,8 +4,11 @@ import (
 	"database/sql"
 	"strings"
 	"sync"
-) //import
+)
 
+// DB is a database handle that embeds the standard library's sql.DB struct.
+//
+//This means the fastsql.DB struct has, and allows, access to all of the standard library functionality while also providng a superset of functionality such as batch operations, autmatically created prepared statmeents, and more.
 type DB struct {
 	*sql.DB
 	PreparedStatements map[string]*sql.Stmt
@@ -19,6 +22,7 @@ type DB struct {
 	values             string
 } //DB
 
+// Close is the same a sql.Close, but first closes any opened prepared statements.
 func (this *DB) Close() error {
 	var (
 		wg sync.WaitGroup
@@ -115,7 +119,7 @@ func (this *DB) Flush() (err error) {
 	return err
 }
 
-func (this *DB) SetDB(dbh *sql.DB) (err error) {
+func (this *DB) setDB(dbh *sql.DB) (err error) {
 	if err = dbh.Ping(); err != nil {
 		return err
 	}
