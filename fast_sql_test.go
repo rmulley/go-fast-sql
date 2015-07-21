@@ -7,7 +7,7 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	_ "github.com/go-sql-driver/mysql"
-) //import
+)
 
 func TestClose(t *testing.T) {
 	var (
@@ -69,7 +69,7 @@ func TestFlush(t *testing.T) {
 	}
 	defer dbhMock.Close()
 
-	dbh.SetDB(dbhMock)
+	dbh.setDB(dbhMock)
 
 	query = "INSERT INTO table_name(a, b, c) VALUES(?, ?, ?);"
 
@@ -133,7 +133,7 @@ func TestBatchInsert(t *testing.T) {
 	}
 	defer dbhMock.Close()
 
-	dbh.SetDB(dbhMock)
+	dbh.setDB(dbhMock)
 
 	query = "INSERT INTO table_name(a, b, c) VALUES(?, ?, ?);"
 
@@ -185,7 +185,7 @@ func (this *DB) TestSetDB(t *testing.T) {
 	}
 	defer dbhMock.Close()
 
-	if err = dbh.SetDB(dbhMock); err != nil {
+	if err = dbh.setDB(dbhMock); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -210,7 +210,7 @@ func TestSplitQuery(t *testing.T) {
 	}
 	defer dbhMock.Close()
 
-	dbh.SetDB(dbhMock)
+	dbh.setDB(dbhMock)
 
 	query = "INSERT INTO table_name(a, b, c) VALUES(?, ?, ?);"
 
