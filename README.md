@@ -3,7 +3,14 @@
 [![GoDoc](https://godoc.org/github.com/rmulley/go-fast-sql?status.svg)](https://godoc.org/github.com/rmulley/go-fast-sql)
 [![license](http://img.shields.io/badge/license-MIT-red.svg?style=flat)](https://raw.githubusercontent.com/rmulley/go-fast-sql/master/LICENSE)
 # go-fast-sql
-A Golang library designed to speed up SQL queries by batching INSERTs, UPDATEs, and DELETEs.  It's designed to be used in a manor very similar to Go's built-in [database/sql](http://golang.org/pkg/database/sql/) package.
+Package fastsql is a library which extends Go's standard [database/sql](https://golang.org/pkg/database/sql/) library.  It provides performance that's easy to take advantage of.
+
+Even better, the fastsql.DB object embeds the standard sql.DB object meaning access to all the standard database/sql library functionality is preserved.  It also means that integrating fastsql into existing codebases is a breeze.
+
+Additional functionality inclues:
+  1. Easy, readable, and performant batch insert queries using the BatchInsert method.
+  2. Automatic creation and re-use of prepared statements.
+  3. A convenient holder for manually used prepared statements.
 
 ##Example usage
 
