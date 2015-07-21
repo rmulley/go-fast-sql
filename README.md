@@ -1,6 +1,7 @@
 [![Build Status](https://travis-ci.org/rmulley/go-fast-sql.png)](https://travis-ci.org/rmulley/go-fast-sql)
 [![Coverage Status](https://coveralls.io/repos/rmulley/go-fast-sql/badge.svg?branch=master)](https://coveralls.io/r/rmulley/go-fast-sql?branch=master)
 [![GoDoc](https://godoc.org/github.com/rmulley/go-fast-sql?status.svg)](https://godoc.org/github.com/rmulley/go-fast-sql)
+[![license](http://img.shields.io/badge/license-MIT-red.svg?style=flat)](https://raw.githubusercontent.com/rmulley/go-fast-sql/master/LICENSE)
 # go-fast-sql
 A Golang library designed to speed up SQL queries by batching INSERTs, UPDATEs, and DELETEs.  It's designed to be used in a manor very similar to Go's built-in [database/sql](http://golang.org/pkg/database/sql/) package.
 
