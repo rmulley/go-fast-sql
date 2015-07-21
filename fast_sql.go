@@ -1,3 +1,12 @@
+// Package fastsql is a library which extends Go's standard database/sql library.  It provides performance that's easy to take advantage of.
+//
+// Even better, the fastsql.DB object embeds the standard sql.DB object meaning access to all the standard database/sql library functionality is preserved.  It also means that integrating fastsql into existing codebases is a breeze.
+//
+// Additional functionality inclues:
+//
+// 1. Easy, readable, and performant batch insert queries using the BatchInsert method.
+// 2. Automatic creation and re-use of prepared statements.
+// 3. A convenient holder for manually used prepared statements.
 package fastsql
 
 import (
