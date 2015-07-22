@@ -86,7 +86,7 @@ func TestFlushInsert(t *testing.T) {
 		WithArgs(1, 2, 3, 1, 2, 3, 1, 2, 3).
 		WillReturnResult(sqlmock.NewResult(0, 3))
 
-	if err = dbh.FlushInsert(dbh.batchInserts[query]); err != nil {
+	if err = dbh.flushInsert(dbh.batchInserts[query]); err != nil {
 		t.Fatal(err)
 	}
 

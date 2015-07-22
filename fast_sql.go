@@ -110,14 +110,14 @@ func (d *DB) BatchInsert(query string, params ...interface{}) (err error) {
 
 	// If the batch interval has been hit, execute a batch insert
 	if d.batchInserts[query].insertCtr >= d.flushInterval {
-		err = d.FlushInsert(d.batchInserts[query])
+		err = d.flushInsert(d.batchInserts[query])
 	} //if
 
 	return err
 }
 
-// Flush performs the acutal batch-insert query.
-func (d *DB) FlushInsert(in *insert) (err error) {
+// flushInsert performs the acutal batch-insert query.
+func (d *DB) flushInsert(in *insert) (err error) {
 	var (
 		query string = in.queryPart1 + in.values[:len(in.values)-1]
 	)
