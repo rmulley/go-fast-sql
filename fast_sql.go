@@ -38,6 +38,7 @@ type Insert struct {
 func NewInsert() *Insert {
 	return &Insert{
 		bindParams: make([]interface{}, 0),
+		values:     " VALUES",
 	}
 }
 
@@ -85,10 +86,8 @@ func Open(driverName, dataSourceName string, flushInterval uint) (*DB, error) {
 		PreparedStatements: make(map[string]*sql.Stmt),
 		prepstmts:          make(map[string]*sql.Stmt),
 		driverName:         driverName,
-		//bindParams:         make([]interface{}, 0),
-		flushInterval: flushInterval,
-		//values:             " VALUES",
-		batchInserts: make(map[string]*Insert),
+		flushInterval:      flushInterval,
+		batchInserts:       make(map[string]*Insert),
 	}, err
 }
 
@@ -111,16 +110,16 @@ func (d *DB) BatchInsert(query string, params ...interface{}) (err error) {
 
 	// If the batch interval has been hit, execute a batch insert
 	if d.batchInserts[query].insertCtr >= d.flushInterval {
-		err = d.Flush()
+		err = d.FlushInsert(d.batchInserts[query])
 	} //if
 
 	return err
 }
 
 // Flush performs the acutal batch-insert query.
-func (d *DB) Flush() (err error) {
+func (d *DB) FlushInsert(in *Insert) (err error) {
 	var (
-		query string = d.queryPart1 + d.values[:len(d.values)-1]
+		query string = in.queryPart1 + in.values[:len(in.values)-1]
 	)
 
 	// Prepare query
@@ -133,14 +132,14 @@ func (d *DB) Flush() (err error) {
 	}
 
 	// Executate batch insert
-	if _, err = d.prepstmts[query].Exec(d.bindParams...); err != nil {
+	if _, err = d.prepstmts[query].Exec(in.bindParams...); err != nil {
 		return err
 	} //if
 
 	// Reset vars
-	d.values = " VALUES"
-	d.bindParams = make([]interface{}, 0)
-	d.insertCtr = 0
+	in.values = " VALUES"
+	in.bindParams = make([]interface{}, 0)
+	in.insertCtr = 0
 
 	return err
 }
