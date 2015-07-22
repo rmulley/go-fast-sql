@@ -24,10 +24,10 @@ type DB struct {
 	prepstmts          map[string]*sql.Stmt
 	driverName         string
 	flushInterval      uint
-	batchInserts       map[string]*Insert
+	batchInserts       map[string]*insert
 }
 
-type Insert struct {
+type insert struct {
 	bindParams []interface{}
 	insertCtr  uint
 	queryPart1 string
@@ -35,8 +35,8 @@ type Insert struct {
 	values     string
 }
 
-func NewInsert() *Insert {
-	return &Insert{
+func newInsert() *insert {
+	return &insert{
 		bindParams: make([]interface{}, 0),
 		values:     " VALUES",
 	}
@@ -87,14 +87,14 @@ func Open(driverName, dataSourceName string, flushInterval uint) (*DB, error) {
 		prepstmts:          make(map[string]*sql.Stmt),
 		driverName:         driverName,
 		flushInterval:      flushInterval,
-		batchInserts:       make(map[string]*Insert),
+		batchInserts:       make(map[string]*insert),
 	}, err
 }
 
 // BatchInsert takes a singlular INSERT query and converts it to a batch-insert query for the caller.  A batch-insert is ran every time BatchInsert is called a multiple of flushInterval times.
 func (d *DB) BatchInsert(query string, params ...interface{}) (err error) {
 	if _, ok := d.batchInserts[query]; !ok {
-		d.batchInserts[query] = NewInsert()
+		d.batchInserts[query] = newInsert()
 	} //if
 
 	// Only split out query the first time Insert is called
@@ -117,7 +117,7 @@ func (d *DB) BatchInsert(query string, params ...interface{}) (err error) {
 }
 
 // Flush performs the acutal batch-insert query.
-func (d *DB) FlushInsert(in *Insert) (err error) {
+func (d *DB) FlushInsert(in *insert) (err error) {
 	var (
 		query string = in.queryPart1 + in.values[:len(in.values)-1]
 	)
@@ -153,7 +153,7 @@ func (d *DB) setDB(dbh *sql.DB) (err error) {
 	return nil
 }
 
-func (in *Insert) splitQuery(query string) {
+func (in *insert) splitQuery(query string) {
 	var (
 		ndxParens, ndxValues int
 	)
