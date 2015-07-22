@@ -233,3 +233,18 @@ func TestSplitQuery(t *testing.T) {
 		t.Fatal("dbh.queryPart2 not formatted correctly.")
 	}
 }
+
+func TestNewInsert(t *testing.T) {
+	in := newInsert()
+
+	if len(in.bindParams) != 0 {
+		t.Fatalf("Expected insert.bindParams to be empty, has a length of %d instead", len(in.bindParams))
+	}
+
+	// This will panic if bindParams was not made, which it should be
+	in.bindParams = append(in.bindParams, 1, 2, 3)
+
+	if in.values != " VALUES" {
+		t.Fatalf("Expected insert.values to be set to %s, set to %s instead.", " VALUES", in.values)
+	}
+}
