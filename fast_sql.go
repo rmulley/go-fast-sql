@@ -27,21 +27,6 @@ type DB struct {
 	batchInserts       map[string]*insert
 }
 
-type insert struct {
-	bindParams []interface{}
-	insertCtr  uint
-	queryPart1 string
-	queryPart2 string
-	values     string
-}
-
-func newInsert() *insert {
-	return &insert{
-		bindParams: make([]interface{}, 0),
-		values:     " VALUES",
-	}
-}
-
 // Close is the same a sql.Close, but first closes any opened prepared statements.
 func (d *DB) Close() error {
 	var (
@@ -151,6 +136,21 @@ func (d *DB) setDB(dbh *sql.DB) (err error) {
 
 	d.DB = dbh
 	return nil
+}
+
+type insert struct {
+	bindParams []interface{}
+	insertCtr  uint
+	queryPart1 string
+	queryPart2 string
+	values     string
+}
+
+func newInsert() *insert {
+	return &insert{
+		bindParams: make([]interface{}, 0),
+		values:     " VALUES",
+	}
 }
 
 func (in *insert) splitQuery(query string) {
