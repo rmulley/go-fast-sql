@@ -23,19 +23,19 @@ type DB struct {
 	PreparedStatements map[string]*sql.Stmt
 	prepstmts          map[string]*sql.Stmt
 	driverName         string
-	bindParams         []interface{}
-	insertCtr          uint
 	flushInterval      uint
-	queryPart1         string
-	queryPart2         string
-	values             string
-} //DB
+	batchInserts       map[string]*insert
+}
 
 // Close is the same a sql.Close, but first closes any opened prepared statements.
 func (d *DB) Close() error {
 	var (
 		wg sync.WaitGroup
 	)
+
+	if err := d.FlushAll(); err != nil {
+		return err
+	}
 
 	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
@@ -75,37 +75,50 @@ func Open(driverName, dataSourceName string, flushInterval uint) (*DB, error) {
 		PreparedStatements: make(map[string]*sql.Stmt),
 		prepstmts:          make(map[string]*sql.Stmt),
 		driverName:         driverName,
-		bindParams:         make([]interface{}, 0),
 		flushInterval:      flushInterval,
-		values:             " VALUES",
+		batchInserts:       make(map[string]*insert),
 	}, err
 }
 
 // BatchInsert takes a singlular INSERT query and converts it to a batch-insert query for the caller.  A batch-insert is ran every time BatchInsert is called a multiple of flushInterval times.
 func (d *DB) BatchInsert(query string, params ...interface{}) (err error) {
+	if _, ok := d.batchInserts[query]; !ok {
+		d.batchInserts[query] = newInsert()
+	} //if
+
 	// Only split out query the first time Insert is called
-	if d.queryPart1 == "" {
-		d.splitQuery(query)
+	if d.batchInserts[query].queryPart1 == "" {
+		d.batchInserts[query].splitQuery(query)
 	}
 
-	d.insertCtr++
+	d.batchInserts[query].insertCtr++
 
 	// Build VALUES seciton of query and add to parameter slice
-	d.values += d.queryPart2
-	d.bindParams = append(d.bindParams, params...)
+	d.batchInserts[query].values += d.batchInserts[query].queryPart2
+	d.batchInserts[query].bindParams = append(d.batchInserts[query].bindParams, params...)
 
 	// If the batch interval has been hit, execute a batch insert
-	if d.insertCtr >= d.flushInterval {
-		err = d.Flush()
+	if d.batchInserts[query].insertCtr >= d.flushInterval {
+		err = d.flushInsert(d.batchInserts[query])
 	} //if
 
 	return err
 }
 
-// Flush performs the acutal batch-insert query.
-func (d *DB) Flush() (err error) {
+func (d *DB) FlushAll() error {
+	for _, in := range d.batchInserts {
+		if err := d.flushInsert(in); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// flushInsert performs the acutal batch-insert query.
+func (d *DB) flushInsert(in *insert) (err error) {
 	var (
-		query string = d.queryPart1 + d.values[:len(d.values)-1]
+		query string = in.queryPart1 + in.values[:len(in.values)-1]
 	)
 
 	// Prepare query
@@ -118,14 +131,14 @@ func (d *DB) Flush() (err error) {
 	}
 
 	// Executate batch insert
-	if _, err = d.prepstmts[query].Exec(d.bindParams...); err != nil {
+	if _, err = d.prepstmts[query].Exec(in.bindParams...); err != nil {
 		return err
 	} //if
 
 	// Reset vars
-	d.values = " VALUES"
-	d.bindParams = make([]interface{}, 0)
-	d.insertCtr = 0
+	in.values = " VALUES"
+	in.bindParams = make([]interface{}, 0)
+	in.insertCtr = 0
 
 	return err
 }
@@ -139,7 +152,22 @@ func (d *DB) setDB(dbh *sql.DB) (err error) {
 	return nil
 }
 
-func (d *DB) splitQuery(query string) {
+type insert struct {
+	bindParams []interface{}
+	insertCtr  uint
+	queryPart1 string
+	queryPart2 string
+	values     string
+}
+
+func newInsert() *insert {
+	return &insert{
+		bindParams: make([]interface{}, 0),
+		values:     " VALUES",
+	}
+}
+
+func (in *insert) splitQuery(query string) {
 	var (
 		ndxParens, ndxValues int
 	)
@@ -150,6 +178,6 @@ func (d *DB) splitQuery(query string) {
 	ndxParens = strings.LastIndex(query, ")")
 
 	// Save the first and second parts of the query separately for easier building later
-	d.queryPart1 = strings.TrimSpace(query[:ndxValues])
-	d.queryPart2 = query[ndxValues+6:ndxParens+1] + ","
+	in.queryPart1 = strings.TrimSpace(query[:ndxValues])
+	in.queryPart2 = query[ndxValues+6:ndxParens+1] + ","
 }
