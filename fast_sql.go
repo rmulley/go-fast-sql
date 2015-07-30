@@ -33,6 +33,12 @@ func (d *DB) Close() error {
 		wg sync.WaitGroup
 	)
 
+	for _, in := range d.batchInserts {
+		if err := d.flushInsert(in); err != nil {
+			return err
+		}
+	}
+
 	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
 		defer wg.Done()
