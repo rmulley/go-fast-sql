@@ -45,10 +45,5 @@ func main() {
 
 		i++
 	}
-
-	// Flush out remaining insert (Last 50 rows)
-	if err = dbh.Flush(); err != nil {
-		log.Fatalln(err)
-	}
-} //main
+}
 ```
