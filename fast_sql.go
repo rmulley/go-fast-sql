@@ -33,10 +33,8 @@ func (d *DB) Close() error {
 		wg sync.WaitGroup
 	)
 
-	for _, in := range d.batchInserts {
-		if err := d.flushInsert(in); err != nil {
-			return err
-		}
+	if err := d.FlushAll(); err != nil {
+		return err
 	}
 
 	wg.Add(1)
@@ -105,6 +103,16 @@ func (d *DB) BatchInsert(query string, params ...interface{}) (err error) {
 	} //if
 
 	return err
+}
+
+func (d *DB) FlushAll() error {
+	for _, in := range d.batchInserts {
+		if err := d.flushInsert(in); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // flushInsert performs the acutal batch-insert query.
