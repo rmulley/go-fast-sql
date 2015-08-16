@@ -171,7 +171,7 @@ func newInsert() *insert {
 func (in *insert) splitQuery(query string) {
 	var (
 		ndxParens, ndxValues, ndxOnDupe int
-	) //var
+	)
 
 	// Normalize and split query
 	query = strings.ToLower(query)
