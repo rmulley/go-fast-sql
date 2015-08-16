@@ -179,14 +179,15 @@ func (in *insert) splitQuery(query string) {
 	ndxOnDupe = strings.LastIndex(query, "on duplicate key update")
 	ndxParens = strings.LastIndex(query, ")")
 
+	// Split out first part of query
+	in.queryPart1 = strings.TrimSpace(query[:ndxValues])
+
+	// If ON DUPLICATE cause exists, separate into 3 parts
+	// If ON DUPLICATE does not exist, seperate into 2 parts
 	if ndxOnDupe != -1 {
-		//If On Duplicate cause exists, separate into 3 parts
-		in.queryPart1 = strings.TrimSpace(query[:ndxValues])
 		in.queryPart2 = query[ndxValues+6:ndxOnDupe-1] + ","
 		in.queryPart3 = query[ndxOnDupe:]
 	} else {
-		//If On Duplicate does not exist, seperate into 2 parts
-		in.queryPart1 = strings.TrimSpace(query[:ndxValues])
 		in.queryPart2 = query[ndxValues+6:ndxParens+1] + ","
 	}
 }
