@@ -118,7 +118,7 @@ func (d *DB) FlushAll() error {
 // flushInsert performs the acutal batch-insert query.
 func (d *DB) flushInsert(in *insert) (err error) {
 	var (
-		query string = in.queryPart1 + in.values[:len(in.values)-1]
+		query string = in.queryPart1 + in.values[:len(in.values)-1] + in.queryPart3
 	)
 
 	// Prepare query
@@ -157,6 +157,7 @@ type insert struct {
 	insertCtr  uint
 	queryPart1 string
 	queryPart2 string
+	queryPart3 string
 	values     string
 }
 
@@ -169,15 +170,24 @@ func newInsert() *insert {
 
 func (in *insert) splitQuery(query string) {
 	var (
-		ndxParens, ndxValues int
+		ndxParens, ndxValues, ndxOnDupe int
 	)
 
 	// Normalize and split query
 	query = strings.ToLower(query)
-	ndxValues = strings.LastIndex(query, "values")
+	ndxValues = strings.Index(query, "values")
+	ndxOnDupe = strings.LastIndex(query, "on duplicate key update")
 	ndxParens = strings.LastIndex(query, ")")
 
-	// Save the first and second parts of the query separately for easier building later
+	// Split out first part of query
 	in.queryPart1 = strings.TrimSpace(query[:ndxValues])
-	in.queryPart2 = query[ndxValues+6:ndxParens+1] + ","
+
+	// If ON DUPLICATE cause exists, separate into 3 parts
+	// If ON DUPLICATE does not exist, seperate into 2 parts
+	if ndxOnDupe != -1 {
+		in.queryPart2 = query[ndxValues+6:ndxOnDupe-1] + ","
+		in.queryPart3 = query[ndxOnDupe:]
+	} else {
+		in.queryPart2 = query[ndxValues+6:ndxParens+1] + ","
+	}
 }
