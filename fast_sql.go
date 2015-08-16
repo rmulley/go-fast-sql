@@ -118,7 +118,7 @@ func (d *DB) FlushAll() error {
 // flushInsert performs the acutal batch-insert query.
 func (d *DB) flushInsert(in *insert) (err error) {
 	var (
-		query string = in.queryPart1 + in.values[:len(in.values)-1]
+		query string = in.queryPart1 + in.values[:len(in.values)-1] + in.queryPart3
 	)
 
 	// Prepare query
