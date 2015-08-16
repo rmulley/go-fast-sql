@@ -117,7 +117,7 @@ func TestBatchInsert(t *testing.T) {
 		query   string
 		dbh     *DB
 		dbhMock *sql.DB
-	) //var
+	)
 
 	t.Parallel()
 
@@ -161,6 +161,64 @@ func TestBatchInsert(t *testing.T) {
 	if dbh.batchInserts[query].values != " VALUES(?, ?, ?),(?, ?, ?),(?, ?, ?)," {
 		t.Log(dbh.batchInserts[query].values)
 		t.Fatal("dbh.values not properly being set by dbh.BatchInsert().")
+	}
+}
+
+func TestBatchInsertOnDuplicateKeyUpdate(t *testing.T) {
+	var (
+		err     error
+		query   string
+		dbh     *DB
+		dbhMock *sql.DB
+	)
+
+	t.Parallel()
+
+	if dbh, err = Open("mysql", "user:pass@tcp(localhost:3306)/db_name?"+url.QueryEscape("charset=utf8mb4,utf8&loc=America/New_York"), 100); err != nil {
+		t.Fatal(err)
+	}
+	defer dbh.Close()
+
+	if dbhMock, err = sqlmock.New(); err != nil {
+		t.Fatal(err)
+	}
+	defer dbhMock.Close()
+
+	dbh.setDB(dbhMock)
+
+	query = "INSERT INTO table_name(a, b, c) VALUES(?, ?, ?) ON DUPLICATE KEY UPDATE c = ?;"
+
+	for i := 0; i < 3; i++ {
+		if err = dbh.BatchInsert(
+			query,
+			[]interface{}{
+				1,
+				2,
+				3,
+				4,
+			}...,
+		); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if len(dbh.batchInserts[query].bindParams) != 12 {
+		t.Log(dbh.batchInserts[query].bindParams)
+		t.Fatal("dbh.bindParams not properly set by dbh.BatchInsert().")
+	}
+
+	if dbh.batchInserts[query].insertCtr != 3 {
+		t.Log(dbh.batchInserts[query].insertCtr)
+		t.Fatal("dbh.insertCtr not properly being set by dbh.BatchInsert().")
+	}
+
+	if dbh.batchInserts[query].values != " VALUES(?, ?, ?),(?, ?, ?),(?, ?, ?)," {
+		t.Log(dbh.batchInserts[query].values)
+		t.Fatal("dbh.values not properly being set by dbh.BatchInsert().")
+	}
+
+	if dbh.batchInserts[query].queryPart3 != "on duplicate key update c = ?;" {
+		t.Fatalf("queryPart3 set incorrectly as '%s'.", dbh.batchInserts[query].queryPart3)
 	}
 }
 

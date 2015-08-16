@@ -157,6 +157,7 @@ type insert struct {
 	insertCtr  uint
 	queryPart1 string
 	queryPart2 string
+	queryPart3 string
 	values     string
 }
 
@@ -169,15 +170,23 @@ func newInsert() *insert {
 
 func (in *insert) splitQuery(query string) {
 	var (
-		ndxParens, ndxValues int
-	)
+		ndxParens, ndxValues, ndxOnDupe int
+	) //var
 
 	// Normalize and split query
 	query = strings.ToLower(query)
-	ndxValues = strings.LastIndex(query, "values")
+	ndxValues = strings.Index(query, "values")
+	ndxOnDupe = strings.LastIndex(query, "on duplicate key update")
 	ndxParens = strings.LastIndex(query, ")")
 
-	// Save the first and second parts of the query separately for easier building later
-	in.queryPart1 = strings.TrimSpace(query[:ndxValues])
-	in.queryPart2 = query[ndxValues+6:ndxParens+1] + ","
+	if ndxOnDupe != -1 {
+		//If On Duplicate cause exists, separate into 3 parts
+		in.queryPart1 = strings.TrimSpace(query[:ndxValues])
+		in.queryPart2 = query[ndxValues+6:ndxOnDupe-1] + ","
+		in.queryPart3 = query[ndxOnDupe:]
+	} else {
+		//If On Duplicate does not exist, seperate into 2 parts
+		in.queryPart1 = strings.TrimSpace(query[:ndxValues])
+		in.queryPart2 = query[ndxValues+6:ndxParens+1] + ","
+	}
 }
