@@ -34,7 +34,7 @@ func TestMain(m *testing.M) {
 		CREATE TABLE test_bulk_insert (
 			id tinyint(3) unsigned NOT NULL,
 			id2 tinyint(3) unsigned NOT NULL,
-			id3 tinyint(3) unsigned NOT NULL,
+			id3 tinyint(3) unsigned NOT NULL
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;`
 
 	if _, err = dbh.Exec(query); err != nil {
