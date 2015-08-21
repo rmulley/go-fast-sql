@@ -1,3 +1,5 @@
+// +build integration
+
 package fastsql
 
 import (
@@ -6,6 +8,8 @@ import (
 	"net/url"
 	"os"
 	"testing"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 const (
