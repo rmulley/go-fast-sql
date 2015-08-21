@@ -9,7 +9,7 @@ import (
 
 const (
 	MYSQL_ADDR string = "127.0.0.1"
-	MYSQL_DB   string = ""
+	MYSQL_DB   string = "test"
 	MYSQL_USER string = "travis"
 	MYSQL_PASS string = "test"
 )
