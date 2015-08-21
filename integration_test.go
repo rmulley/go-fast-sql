@@ -1,6 +1,7 @@
 package fastsql
 
 import (
+	"database/sql"
 	"log"
 	"net/url"
 	"os"
@@ -8,10 +9,11 @@ import (
 )
 
 const (
-	MYSQL_ADDR string = "127.0.0.1"
-	MYSQL_DB   string = "test"
-	MYSQL_USER string = "travis"
-	MYSQL_PASS string = ""
+	INSERT_NUM_ROWS uint   = 250
+	MYSQL_ADDR      string = "127.0.0.1"
+	MYSQL_DB        string = "test"
+	MYSQL_USER      string = "travis"
+	MYSQL_PASS      string = ""
 )
 
 var (
@@ -46,12 +48,15 @@ func TestMain(m *testing.M) {
 
 func testBulkInsert(t *testing.T) {
 	var (
-		i   uint = 1
-		err error
+		err     error
+		numRows uint
+		i       uint = 1
+		query   string
+		row     *sql.Row
 	)
 
 	// Loop performing SQL INSERTs
-	for i <= 250 {
+	for i <= INSERT_NUM_ROWS {
 		if err = dbh.BatchInsert("INSERT INTO test_bulk_insert(id, id2, id3) VALUES(?, ?, ?);", i, i+1, i+2); err != nil {
 			t.Fatal(err)
 		}
@@ -61,5 +66,22 @@ func testBulkInsert(t *testing.T) {
 
 	if err = dbh.FlushAll(); err != nil {
 		t.Fatal(err)
+	}
+
+	query = `
+		SELECT
+			COUNT(id)
+		FROM
+			test_bulk_insert
+		WHERE
+			1;`
+
+	row = dbh.QueryRow(query)
+	if err = row.Scan(numRows); err != nil {
+		t.Fatal(err)
+	}
+
+	if numRows != INSERT_NUM_ROWS {
+		t.Fatalf("Expected %d of rows to be inserted, %d were inserted instead.", INSERT_NUM_ROWS, numRows)
 	}
 }
