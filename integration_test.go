@@ -32,6 +32,7 @@ func TestMain(m *testing.M) {
 	}
 	defer dbh.Close()
 
+	// Create DB table to perform INSERTs in
 	query = `
 		CREATE TABLE test_bulk_insert (
 			id tinyint(3) unsigned NOT NULL,
@@ -55,9 +56,15 @@ func testBulkInsert(t *testing.T) {
 		row     *sql.Row
 	)
 
+	query = `
+		INSERT INTO
+			test_bulk_insert(id, id2, id3)
+		VALUES
+			(?, ?, ?);`
+
 	// Loop performing SQL INSERTs
 	for i <= INSERT_NUM_ROWS {
-		if err = dbh.BatchInsert("INSERT INTO test_bulk_insert(id, id2, id3) VALUES(?, ?, ?);", i, i+1, i+2); err != nil {
+		if err = dbh.BatchInsert(query, i, i+1, i+2); err != nil {
 			t.Fatal(err)
 		}
 
