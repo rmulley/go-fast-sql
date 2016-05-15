@@ -83,6 +83,7 @@ func TestFlushInsert(t *testing.T) {
 		}
 	}
 
+	mock.ExpectPrepare("insert into table_name\\(a, b, c\\) VALUES\\(\\?, \\?, \\?\\),\\(\\?, \\?, \\?\\),\\(\\?, \\?, \\?\\)")
 	mock.ExpectExec("insert into table_name\\(a, b, c\\) VALUES\\(\\?, \\?, \\?\\),\\(\\?, \\?, \\?\\),\\(\\?, \\?, \\?\\)").
 		WithArgs(1, 2, 3, 1, 2, 3, 1, 2, 3).
 		WillReturnResult(sqlmock.NewResult(0, 3))
@@ -101,6 +102,11 @@ func TestFlushInsert(t *testing.T) {
 
 	if dbh.batchInserts[query].insertCtr != 0 {
 		t.Fatal("dbh.insertCtr not properly reset by dbh.Flush().")
+	}
+
+	// we make sure that all expectations were met
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expections: %s", err)
 	}
 
 	// Test prepared statement error
