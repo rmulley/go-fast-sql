@@ -18,11 +18,12 @@ var _ = Describe("fastsql", func() {
 			dbh *DB
 		)
 
-		Context("when a valid database connection is closed", func() {
-			if dbh, err = Open("mysql", "user:pass@tcp(localhost:3306)/db_name?"+url.QueryEscape("charset=utf8mb4,utf8&loc=America/New_York"), 100); err != nil {
-				Expect(err).NotTo(HaveOccurred())
-			}
+		BeforeEach(func() {
+			dbh, err = Open("mysql", "user:pass@tcp(localhost:3306)/db_name?"+url.QueryEscape("charset=utf8mb4,utf8&loc=America/New_York"), 100)
+			Expect(err).NotTo(HaveOccurred())
+		})
 
+		Context("when a valid database connection is closed", func() {
 			It("should not error", func() {
 				err = dbh.Close()
 				Expect(err).NotTo(HaveOccurred())
@@ -53,6 +54,36 @@ var _ = Describe("fastsql", func() {
 			})
 		})
 	}) // #Open
+
+	Describe("#SetDB", func() {
+		var (
+			err error
+			dbh *DB
+		)
+
+		BeforeEach(func() {
+			dbh, err = Open("mysql", "user:pass@tcp(localhost:3306)/db_name?"+url.QueryEscape("charset=utf8mb4,utf8&loc=America/New_York"), 100)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		AfterEach(func() {
+			err = dbh.Close()
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		Context("when setting a database connection", func() {
+			It("should not error", func() {
+				dbhMock, _, err := sqlmock.New()
+
+				defer dbhMock.Close()
+				Expect(err).NotTo(HaveOccurred())
+
+				err = dbh.setDB(dbhMock)
+				Expect(err).NotTo(HaveOccurred())
+			})
+		})
+
+	}) // #SetDB
 }) // fastsql
 
 func TestFlushInsert(t *testing.T) {
@@ -236,30 +267,6 @@ func TestBatchInsertOnDuplicateKeyUpdate(t *testing.T) {
 
 	if dbh.batchInserts[query].queryPart3 != "on duplicate key update c = ?;" {
 		t.Fatalf("queryPart3 set incorrectly as '%s'.", dbh.batchInserts[query].queryPart3)
-	}
-}
-
-func TestSetDB(t *testing.T) {
-	var (
-		err     error
-		dbhMock *sql.DB
-		dbh     *DB
-	)
-
-	t.Parallel()
-
-	if dbh, err = Open("mysql", "user:pass@tcp(localhost:3306)/db_name?"+url.QueryEscape("charset=utf8mb4,utf8&loc=America/New_York"), 100); err != nil {
-		t.Fatal(err)
-	}
-	defer dbh.Close()
-
-	if dbhMock, _, err = sqlmock.New(); err != nil {
-		t.Fatal(err)
-	}
-	defer dbhMock.Close()
-
-	if err = dbh.setDB(dbhMock); err != nil {
-		t.Fatal(err)
 	}
 }
 
