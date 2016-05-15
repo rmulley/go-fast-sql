@@ -7,43 +7,53 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	_ "github.com/go-sql-driver/mysql"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
-func TestClose(t *testing.T) {
-	var (
-		err error
-		dbh *DB
-	)
+var _ = Describe("fastsql", func() {
+	Describe("#Close", func() {
+		var (
+			err error
+			dbh *DB
+		)
 
-	t.Parallel()
+		Context("when a valid database connection is closed", func() {
+			if dbh, err = Open("mysql", "user:pass@tcp(localhost:3306)/db_name?"+url.QueryEscape("charset=utf8mb4,utf8&loc=America/New_York"), 100); err != nil {
+				Expect(err).NotTo(HaveOccurred())
+			}
 
-	if dbh, err = Open("mysql", "user:pass@tcp(localhost:3306)/db_name?"+url.QueryEscape("charset=utf8mb4,utf8&loc=America/New_York"), 100); err != nil {
-		t.Fatal(err)
-	}
+			It("should not error", func() {
+				err = dbh.Close()
+				Expect(err).NotTo(HaveOccurred())
+			})
+		})
+	}) // #Close
 
-	if err = dbh.Close(); err != nil {
-		t.Fatal(err)
-	}
-}
+	Describe("#Open", func() {
+		const flushInterval uint = 100
+		var (
+			err error
+			dbh *DB
+		)
 
-func TestOpen(t *testing.T) {
-	var (
-		err           error
-		flushInterval uint = 100
-		dbh           *DB
-	)
+		BeforeEach(func() {
+			dbh, err = Open("mysql", "user:pass@tcp(localhost:3306)/db_name?"+url.QueryEscape("charset=utf8mb4,utf8&loc=America/New_York"), 100)
+			Expect(err).NotTo(HaveOccurred())
+		})
 
-	t.Parallel()
+		AfterEach(func() {
+			err = dbh.Close()
+			Expect(err).NotTo(HaveOccurred())
+		})
 
-	if dbh, err = Open("mysql", "user:pass@tcp(localhost:3306)/db_name?"+url.QueryEscape("charset=utf8mb4,utf8&loc=America/New_York"), 100); err != nil {
-		t.Fatal(err)
-	}
-	defer dbh.Close()
-
-	if dbh.flushInterval != flushInterval {
-		t.Fatal("'flushInterval' not being set correctly in Open().")
-	}
-}
+		Context("when opening a new fastsql database connection", func() {
+			It("should properly set the flush interval", func() {
+				Expect(dbh.flushInterval).To(Equal(flushInterval))
+			})
+		})
+	}) // #Open
+}) // fastsql
 
 func TestFlushInsert(t *testing.T) {
 	var (
