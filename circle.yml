@@ -1,17 +1,16 @@
 machine:
   timezone:
     America/Denver
-  go:
-    version: '1.6.3'
-  environment:
-    GO15VENDOREXPERIMENT: 1
-    GOPATH: /home/ubuntu
+  # environment:
+  #   GO15VENDOREXPERIMENT: 1
+  #   GOPATH: /home/ubuntu
 
-checkout:
-  post:
-    - mkdir -p /home/ubuntu/src/github.com/rmulley
-    - cp -R /home/ubuntu/go-fast-sql /home/ubuntu/src/github.com/rmulley
+# checkout:
+#   post:
+#     - mkdir -p /home/ubuntu/src/github.com/rmulley
+#     - cp -R /home/ubuntu/go-fast-sql /home/ubuntu/src/github.com/rmulley
 
 test:
   override:
-    - cd /home/ubuntu/src/github.com/rmulley/go-fast-sql && ginkgo -p -r --randomizeAllSpecs --randomizeSuites --failOnPending --cover --trace --race --progress
+    # - cd /home/ubuntu/src/github.com/rmulley/go-fast-sql && ginkgo -p -r --randomizeAllSpecs --randomizeSuites --failOnPending --cover --trace --race --progress
+    - ginkgo -p -r --randomizeAllSpecs --randomizeSuites --failOnPending --cover --trace --race --progress

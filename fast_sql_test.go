@@ -51,6 +51,7 @@ func TestFlushInsert(t *testing.T) {
 		query   string
 		dbh     *DB
 		dbhMock *sql.DB
+		mock    sqlmock.Sqlmock
 	)
 
 	//t.Parallel()
@@ -60,7 +61,7 @@ func TestFlushInsert(t *testing.T) {
 	}
 	defer dbh.Close()
 
-	if dbhMock, err = sqlmock.New(); err != nil {
+	if dbhMock, mock, err = sqlmock.New(); err != nil {
 		t.Fatal(err)
 	}
 	defer dbhMock.Close()
@@ -82,7 +83,7 @@ func TestFlushInsert(t *testing.T) {
 		}
 	}
 
-	sqlmock.ExpectExec("insert into table_name\\(a, b, c\\) VALUES\\(\\?, \\?, \\?\\),\\(\\?, \\?, \\?\\),\\(\\?, \\?, \\?\\)").
+	mock.ExpectExec("insert into table_name\\(a, b, c\\) VALUES\\(\\?, \\?, \\?\\),\\(\\?, \\?, \\?\\),\\(\\?, \\?, \\?\\)").
 		WithArgs(1, 2, 3, 1, 2, 3, 1, 2, 3).
 		WillReturnResult(sqlmock.NewResult(0, 3))
 
@@ -126,7 +127,7 @@ func TestBatchInsert(t *testing.T) {
 	}
 	defer dbh.Close()
 
-	if dbhMock, err = sqlmock.New(); err != nil {
+	if dbhMock, _, err = sqlmock.New(); err != nil {
 		t.Fatal(err)
 	}
 	defer dbhMock.Close()
@@ -179,7 +180,7 @@ func TestBatchInsertOnDuplicateKeyUpdate(t *testing.T) {
 	}
 	defer dbh.Close()
 
-	if dbhMock, err = sqlmock.New(); err != nil {
+	if dbhMock, _, err = sqlmock.New(); err != nil {
 		t.Fatal(err)
 	}
 	defer dbhMock.Close()
@@ -236,7 +237,7 @@ func TestSetDB(t *testing.T) {
 	}
 	defer dbh.Close()
 
-	if dbhMock, err = sqlmock.New(); err != nil {
+	if dbhMock, _, err = sqlmock.New(); err != nil {
 		t.Fatal(err)
 	}
 	defer dbhMock.Close()
@@ -261,7 +262,7 @@ func TestSplitQuery(t *testing.T) {
 	}
 	defer dbh.Close()
 
-	if dbhMock, err = sqlmock.New(); err != nil {
+	if dbhMock, _, err = sqlmock.New(); err != nil {
 		t.Fatal(err)
 	}
 	defer dbhMock.Close()
