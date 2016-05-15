@@ -11,6 +11,8 @@ machine:
 #     - cp -R /home/ubuntu/go-fast-sql /home/ubuntu/src/github.com/rmulley
 
 test:
+  pre:
+    - go get -v github.com/onsi/ginkgo/ginkgo
   override:
     # - cd /home/ubuntu/src/github.com/rmulley/go-fast-sql && ginkgo -p -r --randomizeAllSpecs --randomizeSuites --failOnPending --cover --trace --race --progress
     - ginkgo -p -r --randomizeAllSpecs --randomizeSuites --failOnPending --cover --trace --race --progress
