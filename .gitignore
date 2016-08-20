@@ -26,5 +26,6 @@ _testmain.go
 # OS specific extensions
 .DS_Store
 
-# Test coverage files
+# Test files
 *.coverprofile
+junit.xml

@@ -1,3 +1,5 @@
+// +build !integration
+
 package fastsql
 
 import (
@@ -145,18 +147,9 @@ func TestFlushInsert(t *testing.T) {
 		t.Fatal("dbh.insertCtr not properly reset by dbh.Flush().")
 	}
 
-	// we make sure that all expectations were met
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expections: %s", err)
 	}
-
-	// Test prepared statement error
-	/*
-		dbh.Close()
-		if err = dbh.Flush(); err == nil {
-			t.Fatal("Expecting prepared statement to fail and throw an error.")
-		}
-	*/
 }
 
 func TestBatchInsert(t *testing.T) {
