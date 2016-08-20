@@ -188,8 +188,8 @@ func TestFlushInsert(t *testing.T) {
 		}
 	}
 
-	mock.ExpectPrepare("insert into table_name\\(a, b, c\\) VALUES\\(\\?, \\?, \\?\\),\\(\\?, \\?, \\?\\),\\(\\?, \\?, \\?\\)")
-	mock.ExpectExec("insert into table_name\\(a, b, c\\) VALUES\\(\\?, \\?, \\?\\),\\(\\?, \\?, \\?\\),\\(\\?, \\?, \\?\\)").
+	mock.ExpectPrepare("INSERT INTO table_name\\(a, b, c\\) VALUES\\(\\?, \\?, \\?\\),\\(\\?, \\?, \\?\\),\\(\\?, \\?, \\?\\)")
+	mock.ExpectExec("INSERT INTO table_name\\(a, b, c\\) VALUES\\(\\?, \\?, \\?\\),\\(\\?, \\?, \\?\\),\\(\\?, \\?, \\?\\)").
 		WithArgs(1, 2, 3, 1, 2, 3, 1, 2, 3).
 		WillReturnResult(sqlmock.NewResult(0, 3))
 
