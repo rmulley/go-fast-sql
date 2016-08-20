@@ -2,8 +2,10 @@ machine:
   timezone:
     America/Denver
 
-test:
-  pre:
+dependencies:
+  post:
     - go get -v github.com/onsi/ginkgo/ginkgo
+
+test:
   override:
     - ginkgo -r --randomizeAllSpecs --randomizeSuites --failOnPending --cover --trace --race --progress
