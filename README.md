@@ -1,5 +1,6 @@
 ![Build Status](https://circleci.com/gh/rmulley/go-fast-sql.svg?style=shield)
-[![Coverage Status](https://coveralls.io/repos/rmulley/go-fast-sql/badge.svg?branch=master)](https://coveralls.io/r/rmulley/go-fast-sql?branch=master)
+[![Test Coverage](https://codeclimate.com/github/rmulley/go-fast-sql/badges/coverage.svg)](https://codeclimate.com/github/rmulley/go-fast-sql/coverage)
+[![Code Climate](https://codeclimate.com/github/rmulley/go-fast-sql/badges/gpa.svg)](https://codeclimate.com/github/rmulley/go-fast-sql)
 [![GoDoc](https://godoc.org/github.com/rmulley/go-fast-sql?status.svg)](https://godoc.org/github.com/rmulley/go-fast-sql)
 [![license](http://img.shields.io/badge/license-MIT-red.svg?style=flat)](https://raw.githubusercontent.com/rmulley/go-fast-sql/master/LICENSE)
 # go-fast-sql
