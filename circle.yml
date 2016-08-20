@@ -1,0 +1,9 @@
+machine:
+  timezone:
+    America/Denver
+
+test:
+  pre:
+    - go get -v github.com/onsi/ginkgo/ginkgo
+  override:
+    - ginkgo -p -r --randomizeAllSpecs --randomizeSuites --failOnPending --cover --trace --race --progress

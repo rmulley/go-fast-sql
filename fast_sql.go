@@ -105,6 +105,7 @@ func (d *DB) BatchInsert(query string, params ...interface{}) (err error) {
 	return err
 }
 
+// FlushAll iterates over all batch inserts and inserts them into the database.
 func (d *DB) FlushAll() error {
 	for _, in := range d.batchInserts {
 		if err := d.flushInsert(in); err != nil {
@@ -116,14 +117,17 @@ func (d *DB) FlushAll() error {
 }
 
 // flushInsert performs the acutal batch-insert query.
-func (d *DB) flushInsert(in *insert) (err error) {
+func (d *DB) flushInsert(in *insert) error {
 	var (
-		query string = in.queryPart1 + in.values[:len(in.values)-1] + in.queryPart3
+		err   error
+		query = in.queryPart1 + in.values[:len(in.values)-1] + in.queryPart3
 	)
 
 	// Prepare query
 	if _, ok := d.prepstmts[query]; !ok {
-		if stmt, err := d.DB.Prepare(query); err == nil {
+		var stmt *sql.Stmt
+
+		if stmt, err = d.DB.Prepare(query); err == nil {
 			d.prepstmts[query] = stmt
 		} else {
 			return err

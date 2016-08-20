@@ -1,3 +1,5 @@
+// +build !integration
+
 package fastsql
 
 import (
@@ -7,43 +9,84 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	_ "github.com/go-sql-driver/mysql"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
-func TestClose(t *testing.T) {
-	var (
-		err error
-		dbh *DB
-	)
+var _ = Describe("fastsql", func() {
+	Describe("#Close", func() {
+		var (
+			err error
+			dbh *DB
+		)
 
-	t.Parallel()
+		BeforeEach(func() {
+			dbh, err = Open("mysql", "user:pass@tcp(localhost:3306)/db_name?"+url.QueryEscape("charset=utf8mb4,utf8&loc=America/New_York"), 100)
+			Expect(err).NotTo(HaveOccurred())
+		})
 
-	if dbh, err = Open("mysql", "user:pass@tcp(localhost:3306)/db_name?"+url.QueryEscape("charset=utf8mb4,utf8&loc=America/New_York"), 100); err != nil {
-		t.Fatal(err)
-	}
+		Context("when a valid database connection is closed", func() {
+			It("should not error", func() {
+				err = dbh.Close()
+				Expect(err).NotTo(HaveOccurred())
+			})
+		})
+	}) // #Close
 
-	if err = dbh.Close(); err != nil {
-		t.Fatal(err)
-	}
-}
+	Describe("#Open", func() {
+		const flushInterval uint = 100
+		var (
+			err error
+			dbh *DB
+		)
 
-func TestOpen(t *testing.T) {
-	var (
-		err           error
-		flushInterval uint = 100
-		dbh           *DB
-	)
+		BeforeEach(func() {
+			dbh, err = Open("mysql", "user:pass@tcp(localhost:3306)/db_name?"+url.QueryEscape("charset=utf8mb4,utf8&loc=America/New_York"), 100)
+			Expect(err).NotTo(HaveOccurred())
+		})
 
-	t.Parallel()
+		AfterEach(func() {
+			err = dbh.Close()
+			Expect(err).NotTo(HaveOccurred())
+		})
 
-	if dbh, err = Open("mysql", "user:pass@tcp(localhost:3306)/db_name?"+url.QueryEscape("charset=utf8mb4,utf8&loc=America/New_York"), 100); err != nil {
-		t.Fatal(err)
-	}
-	defer dbh.Close()
+		Context("when opening a new fastsql database connection", func() {
+			It("should properly set the flush interval", func() {
+				Expect(dbh.flushInterval).To(Equal(flushInterval))
+			})
+		})
+	}) // #Open
 
-	if dbh.flushInterval != flushInterval {
-		t.Fatal("'flushInterval' not being set correctly in Open().")
-	}
-}
+	Describe("#SetDB", func() {
+		var (
+			err error
+			dbh *DB
+		)
+
+		BeforeEach(func() {
+			dbh, err = Open("mysql", "user:pass@tcp(localhost:3306)/db_name?"+url.QueryEscape("charset=utf8mb4,utf8&loc=America/New_York"), 100)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		AfterEach(func() {
+			err = dbh.Close()
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		Context("when setting a database connection", func() {
+			It("should not error", func() {
+				dbhMock, _, err := sqlmock.New()
+
+				defer dbhMock.Close()
+				Expect(err).NotTo(HaveOccurred())
+
+				err = dbh.setDB(dbhMock)
+				Expect(err).NotTo(HaveOccurred())
+			})
+		})
+
+	}) // #SetDB
+}) // fastsql
 
 func TestFlushInsert(t *testing.T) {
 	var (
@@ -51,6 +94,7 @@ func TestFlushInsert(t *testing.T) {
 		query   string
 		dbh     *DB
 		dbhMock *sql.DB
+		mock    sqlmock.Sqlmock
 	)
 
 	//t.Parallel()
@@ -60,7 +104,7 @@ func TestFlushInsert(t *testing.T) {
 	}
 	defer dbh.Close()
 
-	if dbhMock, err = sqlmock.New(); err != nil {
+	if dbhMock, mock, err = sqlmock.New(); err != nil {
 		t.Fatal(err)
 	}
 	defer dbhMock.Close()
@@ -82,7 +126,8 @@ func TestFlushInsert(t *testing.T) {
 		}
 	}
 
-	sqlmock.ExpectExec("insert into table_name\\(a, b, c\\) VALUES\\(\\?, \\?, \\?\\),\\(\\?, \\?, \\?\\),\\(\\?, \\?, \\?\\)").
+	mock.ExpectPrepare("insert into table_name\\(a, b, c\\) VALUES\\(\\?, \\?, \\?\\),\\(\\?, \\?, \\?\\),\\(\\?, \\?, \\?\\)")
+	mock.ExpectExec("insert into table_name\\(a, b, c\\) VALUES\\(\\?, \\?, \\?\\),\\(\\?, \\?, \\?\\),\\(\\?, \\?, \\?\\)").
 		WithArgs(1, 2, 3, 1, 2, 3, 1, 2, 3).
 		WillReturnResult(sqlmock.NewResult(0, 3))
 
@@ -102,13 +147,9 @@ func TestFlushInsert(t *testing.T) {
 		t.Fatal("dbh.insertCtr not properly reset by dbh.Flush().")
 	}
 
-	// Test prepared statement error
-	/*
-		dbh.Close()
-		if err = dbh.Flush(); err == nil {
-			t.Fatal("Expecting prepared statement to fail and throw an error.")
-		}
-	*/
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expections: %s", err)
+	}
 }
 
 func TestBatchInsert(t *testing.T) {
@@ -126,7 +167,7 @@ func TestBatchInsert(t *testing.T) {
 	}
 	defer dbh.Close()
 
-	if dbhMock, err = sqlmock.New(); err != nil {
+	if dbhMock, _, err = sqlmock.New(); err != nil {
 		t.Fatal(err)
 	}
 	defer dbhMock.Close()
@@ -179,7 +220,7 @@ func TestBatchInsertOnDuplicateKeyUpdate(t *testing.T) {
 	}
 	defer dbh.Close()
 
-	if dbhMock, err = sqlmock.New(); err != nil {
+	if dbhMock, _, err = sqlmock.New(); err != nil {
 		t.Fatal(err)
 	}
 	defer dbhMock.Close()
@@ -222,30 +263,6 @@ func TestBatchInsertOnDuplicateKeyUpdate(t *testing.T) {
 	}
 }
 
-func TestSetDB(t *testing.T) {
-	var (
-		err     error
-		dbhMock *sql.DB
-		dbh     *DB
-	)
-
-	t.Parallel()
-
-	if dbh, err = Open("mysql", "user:pass@tcp(localhost:3306)/db_name?"+url.QueryEscape("charset=utf8mb4,utf8&loc=America/New_York"), 100); err != nil {
-		t.Fatal(err)
-	}
-	defer dbh.Close()
-
-	if dbhMock, err = sqlmock.New(); err != nil {
-		t.Fatal(err)
-	}
-	defer dbhMock.Close()
-
-	if err = dbh.setDB(dbhMock); err != nil {
-		t.Fatal(err)
-	}
-}
-
 func TestSplitQuery(t *testing.T) {
 	var (
 		err     error
@@ -261,7 +278,7 @@ func TestSplitQuery(t *testing.T) {
 	}
 	defer dbh.Close()
 
-	if dbhMock, err = sqlmock.New(); err != nil {
+	if dbhMock, _, err = sqlmock.New(); err != nil {
 		t.Fatal(err)
 	}
 	defer dbhMock.Close()
