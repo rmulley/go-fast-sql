@@ -31,7 +31,7 @@ var _ = Describe("fastsql", func() {
 				Expect(err).NotTo(HaveOccurred())
 			})
 		})
-	}) // #Close
+	}) // Describe #Close
 
 	Describe("#Open", func() {
 		const flushInterval uint = 100
@@ -55,7 +55,7 @@ var _ = Describe("fastsql", func() {
 				Expect(dbh.flushInterval).To(Equal(flushInterval))
 			})
 		})
-	}) // #Open
+	}) // Describe #Open
 
 	Describe("#SetDB", func() {
 		var (
@@ -84,8 +84,70 @@ var _ = Describe("fastsql", func() {
 				Expect(err).NotTo(HaveOccurred())
 			})
 		})
+	}) // Describe #SetDB
 
-	}) // #SetDB
+	Describe("#splitQuery", func() {
+		var (
+			err     error
+			query   string
+			dbh     *DB
+			dbhMock *sql.DB
+		)
+
+		BeforeEach(func() {
+			dbh, err = Open("mysql", "user:pass@tcp(localhost:3306)/db_name?"+url.QueryEscape("charset=utf8mb4,utf8&loc=America/New_York"), 100)
+			Expect(err).NotTo(HaveOccurred())
+
+			dbhMock, _, err = sqlmock.New()
+			Expect(err).NotTo(HaveOccurred())
+			dbh.setDB(dbhMock)
+		})
+
+		AfterEach(func() {
+			// err = dbhMock.Close()
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		Context("with an insert query with a lowercase table name", func() {
+			It("should build a valid query", func() {
+				query = "INSERT INTO table_name(a, b, c) VALUES(?, ?, ?);"
+
+				if err = dbh.BatchInsert(
+					query,
+					[]interface{}{
+						1,
+						2,
+						3,
+					}...,
+				); err != nil {
+					Expect(err).NotTo(HaveOccurred())
+				}
+
+				Expect(dbh.batchInserts[query].queryPart1).To(Equal("INSERT INTO table_name(a, b, c)"))
+				Expect(dbh.batchInserts[query].queryPart2).To(Equal("(?, ?, ?),"))
+			})
+		})
+
+		Context("with an insert query with a mixed-case table name", func() {
+			It("should build a valid query", func() {
+				query = "INSERT INTO TaBle_NamE(a, b, c) VALUES(?, ?, ?);"
+
+				if err = dbh.BatchInsert(
+					query,
+					[]interface{}{
+						1,
+						2,
+						3,
+					}...,
+				); err != nil {
+					Expect(err).NotTo(HaveOccurred())
+				}
+
+				Expect(dbh.batchInserts[query].queryPart1).To(Equal("INSERT INTO TaBle_NamE(a, b, c)"))
+				Expect(dbh.batchInserts[query].queryPart2).To(Equal("(?, ?, ?),"))
+			})
+		})
+	}) // Describe #splitQuery
 }) // fastsql
 
 func TestFlushInsert(t *testing.T) {
@@ -258,54 +320,8 @@ func TestBatchInsertOnDuplicateKeyUpdate(t *testing.T) {
 		t.Fatal("dbh.values not properly being set by dbh.BatchInsert().")
 	}
 
-	if dbh.batchInserts[query].queryPart3 != "on duplicate key update c = ?;" {
+	if dbh.batchInserts[query].queryPart3 != "ON DUPLICATE KEY UPDATE c = ?;" {
 		t.Fatalf("queryPart3 set incorrectly as '%s'.", dbh.batchInserts[query].queryPart3)
-	}
-}
-
-func TestSplitQuery(t *testing.T) {
-	var (
-		err     error
-		query   string
-		dbh     *DB
-		dbhMock *sql.DB
-	)
-
-	t.Parallel()
-
-	if dbh, err = Open("mysql", "user:pass@tcp(localhost:3306)/db_name?"+url.QueryEscape("charset=utf8mb4,utf8&loc=America/New_York"), 100); err != nil {
-		t.Fatal(err)
-	}
-	defer dbh.Close()
-
-	if dbhMock, _, err = sqlmock.New(); err != nil {
-		t.Fatal(err)
-	}
-	defer dbhMock.Close()
-
-	dbh.setDB(dbhMock)
-
-	query = "INSERT INTO table_name(a, b, c) VALUES(?, ?, ?);"
-
-	if err = dbh.BatchInsert(
-		query,
-		[]interface{}{
-			1,
-			2,
-			3,
-		}...,
-	); err != nil {
-		t.Fatal(err)
-	}
-
-	if dbh.batchInserts[query].queryPart1 != "insert into table_name(a, b, c)" {
-		t.Log("*" + dbh.batchInserts[query].queryPart1 + "*")
-		t.Fatal("dbh.queryPart1 not formatted correctly.")
-	}
-
-	if dbh.batchInserts[query].queryPart2 != "(?, ?, ?)," {
-		t.Log("*" + dbh.batchInserts[query].queryPart2 + "*")
-		t.Fatal("dbh.queryPart2 not formatted correctly.")
 	}
 }
 

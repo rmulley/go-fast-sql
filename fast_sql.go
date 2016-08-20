@@ -11,8 +11,14 @@ package fastsql
 
 import (
 	"database/sql"
+	"regexp"
 	"strings"
 	"sync"
+)
+
+var (
+	dupeRegexp   = regexp.MustCompile(`(?i)on duplicate key update`)
+	valuesRegexp = regexp.MustCompile(`(?i)values`)
 )
 
 // DB is a database handle that embeds the standard library's sql.DB struct.
@@ -174,20 +180,27 @@ func newInsert() *insert {
 
 func (in *insert) splitQuery(query string) {
 	var (
-		ndxParens, ndxValues, ndxOnDupe int
+		ndxOnDupe, ndxValues = -1, -1
+		ndxParens            = strings.LastIndex(query, ")")
 	)
 
-	// Normalize and split query
-	query = strings.ToLower(query)
-	ndxValues = strings.Index(query, "values")
-	ndxOnDupe = strings.LastIndex(query, "on duplicate key update")
-	ndxParens = strings.LastIndex(query, ")")
+	// Find "VALUES".
+	valuesMatches := valuesRegexp.FindStringIndex(query)
+	if len(valuesMatches) > 0 {
+		ndxValues = valuesMatches[0]
+	}
+
+	// Find "ON DUPLICATE KEY UPDATE"
+	dupeMatches := dupeRegexp.FindAllStringIndex(query, -1)
+	if len(dupeMatches) > 0 {
+		ndxOnDupe = dupeMatches[len(dupeMatches)-1][0]
+	}
 
 	// Split out first part of query
 	in.queryPart1 = strings.TrimSpace(query[:ndxValues])
 
-	// If ON DUPLICATE cause exists, separate into 3 parts
-	// If ON DUPLICATE does not exist, seperate into 2 parts
+	// If ON DUPLICATE clause exists, separate into 3 parts.
+	// If ON DUPLICATE does not exist, seperate into 2 parts.
 	if ndxOnDupe != -1 {
 		in.queryPart2 = query[ndxValues+6:ndxOnDupe-1] + ","
 		in.queryPart3 = query[ndxOnDupe:]
