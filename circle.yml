@@ -11,10 +11,14 @@ jobs:
     steps:
       - run:
           name: Dependencies
-          command: go get -v github.com/onsi/ginkgo/ginkgo
+          command:
+            - go get -uv github.com/go-sql-driver/mysql
+            - go get -uv github.com/DATA-DOG/go-sqlmock
+            - go get -uv github.com/onsi/ginkgo/ginkgo
+            - go get -uv github.com/onsi/gomega
       - run:
           name: Run tests
-          command: ginkgo -r --randomizeAllSpecs --randomizeSuites --failOnPending --cover --trace --race --progress
+          command: ginkgo -r -p --randomizeAllSpecs --randomizeSuites --failOnPending --cover --trace --race --progress
 
   "golang-1.8.4":
     docker:
@@ -22,10 +26,14 @@ jobs:
     steps:
       - run:
           name: Dependencies
-          command: go get -v github.com/onsi/ginkgo/ginkgo
+          command:
+            - go get -uv github.com/go-sql-driver/mysql
+            - go get -uv github.com/DATA-DOG/go-sqlmock
+            - go get -uv github.com/onsi/ginkgo/ginkgo
+            - go get -uv github.com/onsi/gomega
       - run:
           name: Run tests
-          command: ginkgo -r --randomizeAllSpecs --randomizeSuites --failOnPending --cover --trace --race --progress
+          command: ginkgo -r -p --randomizeAllSpecs --randomizeSuites --failOnPending --cover --trace --race --progress
 
   "golang-1.7.6":
     docker:
@@ -33,10 +41,14 @@ jobs:
     steps:
       - run:
           name: Dependencies
-          command: go get -v github.com/onsi/ginkgo/ginkgo
+          command:
+            - go get -uv github.com/go-sql-driver/mysql
+            - go get -uv github.com/DATA-DOG/go-sqlmock
+            - go get -uv github.com/onsi/ginkgo/ginkgo
+            - go get -uv github.com/onsi/gomega
       - run:
           name: Run tests
-          command: ginkgo -r --randomizeAllSpecs --randomizeSuites --failOnPending --cover --trace --race --progress
+          command: ginkgo -r -p --randomizeAllSpecs --randomizeSuites --failOnPending --cover --trace --race --progress
 
 workflows:
   version: 2
