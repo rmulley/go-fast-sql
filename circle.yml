@@ -16,7 +16,6 @@ jobs:
           name: Run tests
           command: ginkgo -r --randomizeAllSpecs --randomizeSuites --failOnPending --cover --trace --race --progress
 
-jobs:
   "golang-1.8.4":
     docker:
       - image: circleci/golang:1.8.4
@@ -28,7 +27,6 @@ jobs:
           name: Run tests
           command: ginkgo -r --randomizeAllSpecs --randomizeSuites --failOnPending --cover --trace --race --progress
 
-jobs:
   "golang-1.7.6":
     docker:
       - image: circleci/golang:1.7.6
