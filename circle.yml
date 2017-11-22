@@ -1,11 +1,41 @@
+version: 2.0
+
 machine:
   timezone:
     America/Denver
 
-dependencies:
-  post:
-    - go get -v github.com/onsi/ginkgo/ginkgo
+jobs:
+  "golang-1.9.2":
+    docker:
+      - image: circleci/golang:1.9.2
+    steps:
+      - run:
+          name: Dependencies
+          command: go get -v github.com/onsi/ginkgo/ginkgo
+      - run:
+          name: Run tests
+          command: ginkgo -r --randomizeAllSpecs --randomizeSuites --failOnPending --cover --trace --race --progress
 
-test:
-  override:
-    - ginkgo -r --randomizeAllSpecs --randomizeSuites --failOnPending --cover --trace --race --progress
+jobs:
+  "golang-1.8.4":
+    docker:
+      - image: circleci/golang:1.8.4
+    steps:
+      - run:
+          name: Dependencies
+          command: go get -v github.com/onsi/ginkgo/ginkgo
+      - run:
+          name: Run tests
+          command: ginkgo -r --randomizeAllSpecs --randomizeSuites --failOnPending --cover --trace --race --progress
+
+jobs:
+  "golang-1.7.6":
+    docker:
+      - image: circleci/golang:1.7.6
+    steps:
+      - run:
+          name: Dependencies
+          command: go get -v github.com/onsi/ginkgo/ginkgo
+      - run:
+          name: Run tests
+          command: ginkgo -r --randomizeAllSpecs --randomizeSuites --failOnPending --cover --trace --race --progress
