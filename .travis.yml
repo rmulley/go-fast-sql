@@ -1,0 +1,14 @@
+sudo: false
+
+language: go
+go:
+  - 1.7.x
+  - 1.8.x
+  - 1.9.x
+  - master
+matrix:
+  allow_failures:
+    - go: master
+
+script:
+  - ginkgo -r -p --randomizeAllSpecs --randomizeSuites --failOnPending --cover --trace --race --progress
