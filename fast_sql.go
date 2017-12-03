@@ -17,6 +17,10 @@ import (
 	"strings"
 )
 
+var (
+	splitQueryRegex = regexp.MustCompile(`(?i)(insert into.*?)(values\s*\(.*?)($|on\s*conflict.*)`)
+)
+
 type FastSQL interface {
 	BatchInsert(query string, args ...interface{}) error
 }
@@ -80,23 +84,27 @@ func (q *query) Add(args ...interface{}) {
 func splitQueryString(queryString string) (string, string, string) {
 	var insert, conflict, values string
 
-	// "INSERT INTO films (code, title, did, date_prod, kind) VALUES ('T_601', 'Yojimbo', 106, '1961-06-16', 'Drama');"
-	regex := regexp.MustCompile(`(?i)(insert into.*?)(values\s*\(.*?\))`)
-	// regex := regexp.MustCompile(`(i)(insert into.*?)(values\s*\(.*?\))(on conflict.*)?`)
-	matches := regex.FindStringSubmatch(queryString)
+	// Remove starting & trailing whitespace. Removing semicolon from end of query.
+	queryString = strings.TrimSpace(queryString)
+	if strings.HasSuffix(queryString, ";") {
+		queryString = queryString[:len(queryString)-1]
+	}
 
-	log.Printf("MATCHES: %+v", matches)
+	// Parse query.
+	matches := splitQueryRegex.FindStringSubmatch(queryString)
+
 	for i := 1; i < len(matches); i++ {
-		log.Printf("MATCH: %s", matches[i])
-
 		switch i {
 		case 1:
+			log.Printf("INSERT: %s", matches[i])
 			insert = strings.TrimSpace(matches[i])
 
 		case 2:
+			log.Printf("VALUES: %s", matches[i])
 			values = strings.TrimSpace(matches[i])
 
 		case 3:
+			log.Printf("CONFLICT: %s", matches[i])
 			conflict = strings.TrimSpace(matches[i])
 		}
 	}
